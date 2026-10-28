@@ -1,0 +1,2663 @@
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Perencanaan - Kejati Aceh (Kejaksaan RI)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        adhyaksa: {
+                            50: '#eef2ff',
+                            600: '#1e3a8a', // Deep Korps Adhyaksa Blue
+                            700: '#1e293b',
+                            900: '#0f172a',
+                            gold: '#d97706', // Adhyaksa Gold accent
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .adhyaksa-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+        .gold-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        /* Motif Pintu Aceh pattern accent */
+        .pintu-aceh-pattern {
+            background-image: radial-gradient(#d97706 0.75px, transparent 0.75px), radial-gradient(#1e3a8a 0.75px, #0f172a 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            opacity: 0.05;
+        }
+        /* Motif Khas Aceh for Calendar & Panels */
+        .aceh-calendar-bg {
+            background-color: rgba(30, 58, 138, 0.03);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(217, 119, 6, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(30, 58, 138, 0.08) 0%, transparent 25%),
+                linear-gradient(45deg, rgba(217, 119, 6, 0.02) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(217, 119, 6, 0.02) 25%, transparent 25%);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            background-position: 0 0, 0 0, 0 0, 20px 20px;
+        }
+        .aceh-gold-border {
+            border-color: #d97706;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+
+    <!-- MAIN DASHBOARD SHELL -->
+    <div id="dashboard-shell" class="flex h-screen overflow-hidden relative">
+
+        <!-- Background Motif Pintu Aceh subtle overlay -->
+        <div class="absolute inset-0 pintu-aceh-pattern pointer-events-none z-0"></div>
+
+        <!-- Sidebar with Kejati Aceh / Adhyaksa & Pintu Aceh Theme -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-slate-900 text-slate-300 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto border-r border-amber-500/30">
+            <!-- Sidebar Header with Pintu Aceh motif accent -->
+            <div class="flex items-center justify-between h-20 px-6 bg-slate-950 text-white font-bold border-b border-amber-500/40 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+                <div class="flex items-center space-x-3 z-10">
+                    <div class="bg-amber-500 text-slate-950 p-2.5 rounded-xl shadow-lg font-extrabold border border-amber-400">
+                        <i class="fa-solid fa-landmark-dome text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="block leading-tight text-sm tracking-widest text-amber-400 font-extrabold">KEJATI ACEH</span>
+                    </div>
+                </div>
+                <button id="sidebarClose" class="lg:hidden text-slate-400 hover:text-white z-10">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Sidebar Navigation Links -->
+            <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto text-sm z-10">
+                <!-- 1. Dashboard Utama -->
+                <a href="#dashboard" onclick="switchMainView('dashboard')" id="nav-dashboard" class="nav-link flex items-center px-4 py-3 text-white bg-blue-900 rounded-xl font-medium transition shadow-sm border border-amber-500/40">
+                    <i class="fa-solid fa-house w-6 text-amber-400"></i> Dashboard Utama
+                </a>
+
+                <!-- 2. Profil Kejati Aceh -->
+                <a href="#profile" onclick="switchMainView('profile')" id="nav-profile" class="nav-link flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition">
+                    <i class="fa-solid fa-building-columns w-6 text-amber-400"></i> Profil Kejati Aceh
+                </a>
+                
+                <!-- 4. Sasaran Strategis -->
+                <div class="space-y-1 pt-1 pb-1">
+                    <div onclick="toggleSubmenu('sasaranStrategisSubmenu', 'submenuSasaranArrow')" class="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition cursor-pointer flex items-center justify-between">
+                        <span class="flex items-center"><i class="fa-solid fa-bullseye w-6 text-amber-400"></i> Sasaran Strategis</span>
+                        <i id="submenuSasaranArrow" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </div>
+                    
+                    <div id="sasaranStrategisSubmenu" class="space-y-1.5 pl-3 hidden">
+                        <!-- Sasaran Strategis 1 -->
+                        <div class="space-y-1">
+                            <div onclick="toggleSubmenu('ss1Submenu', 'arrowSs1')" class="px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center justify-between">
+                                <span class="flex items-center"><i class="fa-solid fa-award w-5 text-amber-400"></i> Sasaran Strategis 1</span>
+                                <i id="arrowSs1" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                            </div>
+                            <div id="ss1Submenu" class="space-y-1 pl-4 hidden">
+                                <div onclick="openIks11Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-chart-pie mr-2 text-amber-400"></i> IKS 1.1 (9 Layanan)</span>
+                                    <span id="badge-iks11" class="px-2 py-0.5 bg-blue-950 text-amber-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sasaran Strategis 2 -->
+                        <div class="space-y-1">
+                            <div onclick="toggleSubmenu('ss2Submenu', 'arrowSs2')" class="px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center justify-between">
+                                <span class="flex items-center"><i class="fa-solid fa-shield-halved w-5 text-blue-400"></i> Sasaran Strategis 2</span>
+                                <i id="arrowSs2" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                            </div>
+                            <div id="ss2Submenu" class="space-y-1 pl-4 hidden">
+                                <div onclick="openIks21Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-chart-line mr-2 text-blue-400"></i> IKS 2.1 (K1, K2, K3)</span>
+                                    <span id="badge-iks21" class="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                                <div onclick="openIks22Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-eye mr-2 text-amber-400"></i> IKS 2.2 (Kegiatan & SP LID)</span>
+                                    <span id="badge-iks22" class="px-2 py-0.5 bg-amber-950 text-amber-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                                <div onclick="openIks23Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-vault mr-2 text-emerald-400"></i> IKS 2.3 (Pemulihan Aset)</span>
+                                    <span id="badge-iks23" class="px-2 py-0.5 bg-emerald-950 text-emerald-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sasaran Strategis 3 -->
+                        <div class="space-y-1">
+                            <div onclick="toggleSubmenu('ss3Submenu', 'arrowSs3')" class="px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center justify-between">
+                                <span class="flex items-center"><i class="fa-solid fa-gavel w-5 text-purple-400"></i> Sasaran Strategis 3</span>
+                                <i id="arrowSs3" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                            </div>
+                            <div id="ss3Submenu" class="space-y-1 pl-4 hidden">
+                                <div onclick="openIks31Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-scale-balanced mr-2 text-purple-400"></i> IKS 3.1 (P1 & P2 Datun)</span>
+                                    <span id="badge-iks31" class="px-2 py-0.5 bg-purple-950 text-purple-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sasaran Strategis 4 -->
+                        <div class="space-y-1">
+                            <div onclick="toggleSubmenu('ss4Submenu', 'arrowSs4')" class="px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center justify-between">
+                                <span class="flex items-center"><i class="fa-solid fa-building-columns w-5 text-rose-400"></i> Sasaran Strategis 4</span>
+                                <i id="arrowSs4" class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200"></i>
+                            </div>
+                            <div id="ss4Submenu" class="space-y-1 pl-4 hidden">
+                                <div onclick="openIks41Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-star mr-2 text-rose-400"></i> IKS 4.1 (Reformasi Birokrasi)</span>
+                                    <span id="badge-iks41" class="px-2 py-0.5 bg-rose-950 text-rose-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                                <div onclick="openIks42Modal()" class="flex items-center justify-between px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition cursor-pointer group">
+                                    <span class="flex items-center"><i class="fa-solid fa-user-shield mr-2 text-cyan-400"></i> IKS 4.2 (Etika Profesi)</span>
+                                    <span id="badge-iks42" class="px-2 py-0.5 bg-cyan-950 text-cyan-300 rounded font-semibold text-[10px]">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 5. Laporan LKJIP -->
+                <div class="space-y-1 pt-1 pb-1">
+                    <div onclick="toggleSubmenu('lkjipSubmenu', 'arrowLkjip')" class="px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition cursor-pointer flex items-center justify-between">
+                        <span class="flex items-center"><i class="fa-solid fa-file-lines w-6 text-amber-400"></i> Laporan LKJIP</span>
+                        <i id="arrowLkjip" class="fa-solid fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </div>
+                    <div id="lkjipSubmenu" class="space-y-1 pl-4 hidden">
+                        <a href="#lkjip" onclick="switchMainView('lkjip'); setLkjipTab('tw1')" class="flex items-center px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2 text-blue-400"></i> Upload LKJIP TW I
+                        </a>
+                        <a href="#lkjip" onclick="switchMainView('lkjip'); setLkjipTab('tw2')" class="flex items-center px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2 text-blue-400"></i> Upload LKJIP TW II
+                        </a>
+                        <a href="#lkjip" onclick="switchMainView('lkjip'); setLkjipTab('tw3')" class="flex items-center px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2 text-emerald-400"></i> Upload LKJIP TW III
+                        </a>
+                        <a href="#lkjip" onclick="switchMainView('lkjip'); setLkjipTab('tw4')" class="flex items-center px-3 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg text-xs transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2 text-purple-400"></i> Upload LKJIP TW IV
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 6. Dasar Hukum LKJIP -->
+                <a href="#dasar-hukum" onclick="switchMainView('dasar-hukum')" id="nav-dasar-hukum" class="nav-link flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition">
+                    <i class="fa-solid fa-scale-balanced w-6 text-amber-400"></i> Dasar Hukum LKJIP
+                </a>
+
+                <!-- 7. Surat LKJIP -->
+                <a href="#surat" onclick="switchMainView('surat')" id="nav-surat" class="nav-link flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition">
+                    <i class="fa-solid fa-envelope w-6 text-amber-400"></i> Surat LKJIP
+                </a>
+
+                <!-- Additional Tools -->
+                <a href="#analytics" onclick="switchMainView('analytics'); renderAnalyticsSasaranIntegration();" id="nav-analytics" class="nav-link flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition">
+                    <i class="fa-solid fa-chart-line w-6 text-amber-400"></i> Analitik & Kinerja
+                </a>
+                <a href="#settings" onclick="switchMainView('settings')" id="nav-settings" class="nav-link flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl font-medium transition">
+                    <i class="fa-solid fa-gear w-6 text-amber-400"></i> Pengaturan Sistem
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer Profile -->
+            <div class="p-4 bg-slate-950 flex items-center justify-between border-t border-amber-500/30 z-10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center border-2 border-amber-400 shrink-0 shadow">
+                        KA
+                    </div>
+                    <div class="overflow-hidden">
+                        <h4 class="text-xs font-semibold text-white truncate">Subbag Perencanaan</h4>
+                        <p class="text-[10px] text-amber-400 truncate">Kejati Aceh • Adhyaksa</p>
+                    </div>
+                </div>
+                <div class="text-emerald-400 text-xs px-2 py-1 bg-emerald-950/50 rounded-lg font-medium flex items-center space-x-1">
+                    <i class="fa-solid fa-circle text-[8px]"></i>
+                    <span class="text-[10px]">Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex flex-col flex-1 h-full overflow-hidden z-10">
+            
+            <!-- Top Header with Pintu Aceh decorative touch -->
+            <header class="flex items-center justify-between h-16 px-6 bg-white dark:bg-slate-900 border-b border-amber-500/20 shadow-sm z-10 transition-colors">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="text-slate-600 dark:text-slate-300 hover:text-amber-600 focus:outline-none transition p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800" title="Sembunyikan/Tampilkan Sidebar">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <!-- Real-time Digital WIB Clock with Adhyaksa Gold accent -->
+                    <div class="hidden lg:flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-inner border border-amber-500/30">
+                        <i class="fa-regular fa-clock text-amber-600 dark:text-amber-400"></i>
+                        <span id="realTimeClock">00:00:00 WIB</span>
+                    </div>
+                    <div class="relative hidden md:block w-72">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                        </span>
+                        <input type="text" placeholder="Cari data satker atau indikator..." class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 dark:text-white border border-transparent rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none text-xs transition">
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button id="themeToggle" onclick="toggleTheme()" class="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition flex items-center space-x-2 text-xs font-medium" title="Ganti Tema">
+                        <i id="themeIcon" class="fa-solid fa-moon text-base"></i>
+                        <span id="themeLabel" class="hidden sm:inline">Gelap</span>
+                    </button>
+
+                    <button onclick="showNotification('3 Laporan Triwulan baru diterima dari Kejari Banda Aceh')" class="relative p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+                    </button>
+
+                    <div class="flex items-center space-x-3 border-l pl-4 border-slate-200 dark:border-slate-800">
+                        <span class="text-xs font-bold text-blue-900 dark:text-amber-400 tracking-wide">KEJAKSAAN TINGGI ACEH</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Dynamic Content Views -->
+            <main class="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-950 transition-colors">
+                
+                <!-- VIEW 1: DASHBOARD UTAMA -->
+                <div id="view-dashboard" class="main-view space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                        <div>
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="px-2.5 py-0.5 bg-blue-900 text-amber-400 rounded-md text-[10px] font-bold tracking-wider uppercase border border-amber-500/40">KEJAKSAAN TINGGI ACEH</span>
+                            </div>
+                            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Perencanaan & Kinerja</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Monitoring Capaian Kinerja Sasaran Strategis & LKJIP Perencanaan Kejati Aceh</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0 flex space-x-3">
+                            <button onclick="showNotification('Data Perencanaan disinkronisasi!')" class="px-4 py-2 bg-white dark:bg-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-sm">
+                                <i class="fa-solid fa-rotate mr-1.5 text-blue-600"></i> Segarkan Data
+                            </button>
+                            <button onclick="downloadIksReport()" class="px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-xs font-medium transition shadow-sm border border-amber-500/40">
+                                <i class="fa-solid fa-download mr-1.5 text-amber-400"></i> Unduh Laporan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Weather Analysis Widget (Pulse animation removed) -->
+                    <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-blue-900 p-6 rounded-2xl border border-amber-500/40 shadow-xl text-white flex flex-col justify-between transition-colors relative overflow-hidden">
+                        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                        <div class="flex items-center justify-between mb-3 relative z-10">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2.5 bg-slate-900 text-amber-400 rounded-xl border border-amber-500/40 shadow">
+                                    <i id="weatherMainIcon" class="fa-solid fa-cloud-sun text-base"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-amber-400 tracking-wide">Analisis Cuaca</h3>
+                                    <p id="weatherLocationDate" class="text-[11px] text-blue-200">Banda Aceh, Aceh • Memuat tanggal...</p>
+                                </div>
+                            </div>
+                            <span id="weatherStatusBadge" class="px-3 py-1 bg-blue-900/80 text-amber-300 rounded-lg text-xs font-bold border border-amber-500/40 shadow">Cerah Berawan</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-3 relative z-10">
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-amber-500/20 text-center backdrop-blur-sm">
+                                <span class="text-[10px] text-blue-300 block font-medium">Suhu Udara</span>
+                                <h4 id="weatherTemp" class="text-base font-bold text-white mt-0.5">29°C</h4>
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-amber-500/20 text-center backdrop-blur-sm">
+                                <span class="text-[10px] text-blue-300 block font-medium">Kelembapan</span>
+                                <h4 id="weatherHumidity" class="text-base font-bold text-white mt-0.5">78%</h4>
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-amber-500/20 text-center backdrop-blur-sm">
+                                <span class="text-[10px] text-blue-300 block font-medium">Kecepatan Angin</span>
+                                <h4 id="weatherWind" class="text-base font-bold text-white mt-0.5">12 km/j</h4>
+                            </div>
+                            <div class="p-3 bg-slate-900/80 rounded-xl border border-amber-500/20 text-center backdrop-blur-sm">
+                                <span class="text-[10px] text-blue-300 block font-medium">Kondisi Lapangan</span>
+                                <h4 id="weatherCond" class="text-base font-bold text-white mt-0.5">Kondusif</h4>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-900/90 rounded-xl border border-amber-500/30 flex items-center justify-between backdrop-blur-sm relative z-10">
+                            <div class="flex items-center space-x-2.5">
+                                <i class="fa-solid fa-circle-info text-amber-400 text-sm shrink-0"></i>
+                                <span id="weatherRecommendation" class="text-xs text-blue-100 font-medium">Rekomendasi Operasional: Kondisi cuaca mendukung kegiatan peninjauan lapangan 24 Satker Binaan Kejati Aceh.</span>
+                            </div>
+                            <button onclick="fetchLiveWeatherAnalysis()" class="px-3 py-1.5 bg-blue-900 hover:bg-blue-800 text-amber-400 rounded-lg text-xs font-semibold transition shrink-0 ml-2 border border-amber-500/40">
+                                <i class="fa-solid fa-rotate mr-1"></i> Perbarui
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <div onclick="openSatkerModal()" class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors cursor-pointer hover:border-amber-500 group" title="Klik untuk melihat daftar lengkap 24 Kejari & Cabjari di wilayah hukum Kejati Aceh">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-amber-600 transition">Satker / Kejari Binaan</p>
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-white mt-1">24 Satker</h3>
+                                <span class="inline-flex items-center text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md mt-2">
+                                    <i class="fa-solid fa-check mr-1"></i> 100% Aktif Melapor
+                                </span>
+                            </div>
+                            <div class="p-3.5 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded-xl group-hover:bg-blue-900 group-hover:text-amber-400 transition border border-amber-500/20">
+                                <i class="fa-solid fa-building-shield text-lg"></i>
+                            </div>
+                        </div>
+                        <div onclick="switchMainView('dashboard'); showNotification('Rata-Rata IKS Utama dihitung dari seluruh Sasaran Strategis')" class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors cursor-pointer hover:border-amber-500 group">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-amber-600 transition">Rata-Rata IKS Utama</p>
+                                <h3 id="statAvgIks" class="text-xl font-bold text-slate-900 dark:text-white mt-1">100%</h3>
+                                <span class="inline-flex items-center text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md mt-2">
+                                    <i class="fa-solid fa-bullseye mr-1"></i> Terhubung Sasaran Strategis
+                                </span>
+                            </div>
+                            <div class="p-3.5 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-xl group-hover:bg-blue-900 group-hover:text-amber-400 transition border border-amber-500/20">
+                                <i class="fa-solid fa-chart-pie text-lg"></i>
+                            </div>
+                        </div>
+                        <div onclick="openDokumenHubModal()" class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between transition-colors cursor-pointer hover:border-amber-500 group" title="Klik untuk membuka Hub Integrasi Laporan LKJIP, Dasar Hukum, dan Surat Dinas">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-amber-600 transition">Dokumen LKJIP Disetujui</p>
+                                <h3 id="statTotalDocs" class="text-xl font-bold text-slate-900 dark:text-white mt-1">0 Dokumen</h3>
+                                <span class="inline-flex items-center text-[11px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md mt-2">
+                                    <i class="fa-solid fa-link mr-1"></i> Terintegrasi Hub Arsip
+                                </span>
+                            </div>
+                            <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:bg-blue-900 group-hover:text-amber-400 transition border border-amber-500/20">
+                                <i class="fa-solid fa-file-shield text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calendar and Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Calendar Widget -->
+                        <div class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-6 rounded-2xl border border-amber-500/40 shadow-xl flex flex-col justify-between transition-colors lg:col-span-1 relative overflow-hidden text-slate-100">
+                            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+                            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                            <div class="flex items-center justify-between mb-4 relative z-10">
+                                <div class="flex items-center space-x-2">
+                                    <div class="p-1.5 bg-amber-500 text-slate-950 rounded-lg text-xs font-extrabold shadow">
+                                        <i class="fa-solid fa-calendar-days"></i>
+                                    </div>
+                                    <h3 id="calendarMonthYear" class="text-sm font-bold text-amber-400 tracking-wide">Oktober 2026</h3>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-blue-900/60 rounded-lg text-slate-300 transition">
+                                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                                    </button>
+                                    <button onclick="changeMonth(1)" class="p-1.5 hover:bg-blue-900/60 rounded-lg text-slate-300 transition">
+                                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="relative z-10">
+                                <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-amber-300/80 mb-2">
+                                    <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+                                </div>
+                                <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs">
+                                    <!-- Populated via JavaScript -->
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-amber-500/20 text-[11px] text-blue-200 flex items-center justify-between relative z-10">
+                                <span class="flex items-center"><i class="fa-solid fa-circle text-[8px] text-amber-400 mr-1.5 animate-ping"></i> Jadwal Evaluasi LKJIP</span>
+                                <span class="font-bold text-amber-400 px-2 py-0.5 bg-blue-900/80 rounded-md border border-amber-500/30 text-[10px]">Adhyaksa Aceh</span>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Doughnut Chart -->
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors lg:col-span-2 animate-pulse duration-1000">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-1">Capaian per Sasaran Strategis</h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-4">Distribusi rata-rata nilai IKS</p>
+                            </div>
+                            <div class="relative h-56 flex items-center justify-center">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: PROFIL KEJATI ACEH -->
+                <div id="view-profile" class="main-view space-y-6 hidden">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Profil Kejaksaan Tinggi Aceh</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Informasi kelembagaan, tugas pokok, visi-misi, serta pimpinan Kejati Aceh</p>
+                        </div>
+                        <button onclick="openEditProfileModal()" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-medium hover:bg-blue-800 transition flex items-center space-x-1.5 shadow-sm border border-amber-500/40">
+                            <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                            <span>Edit Profil Instansi</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
+                        <div class="flex flex-col md:flex-row items-center gap-6 pb-6 border-b border-slate-100 dark:border-slate-800">
+                            <div class="w-32 h-32 rounded-2xl adhyaksa-gradient flex items-center justify-center border-2 border-amber-500/60 text-amber-400 text-4xl shadow-lg relative overflow-hidden">
+                                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:12px_12px]"></div>
+                                <i class="fa-solid fa-landmark-dome relative z-10"></i>
+                            </div>
+                            <div class="space-y-2 flex-1 text-center md:text-left">
+                                <span class="px-2.5 py-1 text-[10px] font-bold bg-blue-900 text-amber-400 rounded-full border border-amber-500/40">Instansi Vertikal Kejaksaan RI • Wilayah Hukum Aceh</span>
+                                <h2 id="profileInstansiName" class="text-xl font-bold text-slate-900 dark:text-white">Kejaksaan Tinggi Aceh</h2>
+                                <p id="profileInstansiDesc" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    Kejaksaan Tinggi Aceh adalah lembaga penegak hukum yang melaksanakan kekuasaan negara di bidang penuntutan serta kewenangan atributif lain berdasarkan Undang-Undang di wilayah Provinsi Aceh dengan kekhususan otonomi khusus. Dipimpin oleh Kepala Kejaksaan Tinggi (Kajati) serta dikoordinasikan melalui Subbagian Perencanaan.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2">
+                                <div class="flex items-center space-x-2 text-blue-900 dark:text-amber-400 font-bold text-sm">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <h3>Visi Kejaksaan RI</h3>
+                                </div>
+                                <p id="profileVisiText" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                    "Kejaksaan Republik Indonesia yang Bersih, Efektif, Efisien, Transparan, Akuntabel, serta Berwibawa dalam Penegakan Hukum dan Pelayanan Keadilan."
+                                </p>
+                            </div>
+                            <div class="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2">
+                                <div class="flex items-center space-x-2 text-blue-900 dark:text-amber-400 font-bold text-sm">
+                                    <i class="fa-solid fa-bullseye"></i>
+                                    <h3>Misi Kejaksaan RI</h3>
+                                </div>
+                                <div id="profileMisiText" class="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                                    <p>1. Meningkatkan kualitas penegakan hukum yang berkeadilan.</p>
+                                    <p>2. Optimalisasi pemulihan aset negara dan pengendalian perkara.</p>
+                                    <p>3. Penguatan reformasi birokrasi dan tata kelola anggaran akuntabel.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 pt-2">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Struktur Pimpinan Utama Kejati Aceh</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                                    <div class="w-16 h-16 rounded-full mx-auto bg-blue-900 text-amber-400 font-bold flex items-center justify-center border-2 border-amber-500 text-lg shadow">KA</div>
+                                    <h4 id="profileKajatiTitle" class="text-xs font-bold text-slate-900 dark:text-white">Kepala Kejaksaan Tinggi Aceh</h4>
+                                    <p id="profileKajatiName" class="text-[11px] text-slate-500 font-medium">Kajati Aceh</p>
+                                </div>
+                                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                                    <div class="w-16 h-16 rounded-full mx-auto bg-blue-900 text-amber-400 font-bold flex items-center justify-center border-2 border-blue-500 text-lg shadow">WK</div>
+                                    <h4 id="profileWakajatiTitle" class="text-xs font-bold text-slate-900 dark:text-white">Wakil Kepala Kejaksaan Tinggi</h4>
+                                    <p id="profileWakajatiName" class="text-[11px] text-slate-500 font-medium">Wakajati Aceh</p>
+                                </div>
+                                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                                    <div class="w-16 h-16 rounded-full mx-auto bg-blue-900 text-amber-400 font-bold flex items-center justify-center border-2 border-emerald-500 text-lg shadow">PA</div>
+                                    <h4 id="profileSubbagTitle" class="text-xs font-bold text-slate-900 dark:text-white">Para Asisten</h4>
+                                    <p id="profileSubbagName" class="text-[11px] text-slate-500 font-medium">Koordinator Para Asisten</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 5: LKJIP REPORTS -->
+                <div id="view-lkjip" class="main-view space-y-6 hidden">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Laporan Kinerja Instansi Pemerintah (LKJIP)</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Arsip dokumen perencanaan dan tempat penyimpanan file per triwulan</p>
+                        </div>
+                        <button onclick="showNotification('Pilih menu triwulan di bawah untuk unggah dokumen ke penyimpanan')" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-medium hover:bg-blue-800 transition border border-amber-500/40">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-amber-400"></i> Unggah LKJIP Baru
+                        </button>
+                    </div>
+
+                    <div class="flex space-x-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                        <button onclick="setLkjipTab('tw1')" id="btn-tab-tw1" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-900 text-white transition border border-amber-500/40">LKJIP TW I</button>
+                        <button onclick="setLkjipTab('tw2')" id="btn-tab-tw2" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">LKJIP TW II</button>
+                        <button onclick="setLkjipTab('tw3')" id="btn-tab-tw3" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">LKJIP TW III</button>
+                        <button onclick="setLkjipTab('tw4')" id="btn-tab-tw4" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">LKJIP TW IV</button>
+                    </div>
+
+                    <div id="lkjipContentContainer" class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                        <!-- Content will be injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- VIEW 6: SURAT LKJIP -->
+                <div id="view-surat" class="main-view space-y-6 hidden">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Manajemen Surat LKJIP & Perencanaan</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Unggah, unduh, dan kelola surat LKJIP keluar/masuk terkait evaluasi capaian kinerja</p>
+                        </div>
+                        <button onclick="showNotification('Gunakan form di bawah untuk mengunggah surat LKJIP baru')" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-medium hover:bg-blue-800 transition border border-amber-500/40">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-amber-400"></i> Unggah Surat LKJIP
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-file-arrow-up text-blue-900 dark:text-amber-400"></i>
+                                <span>Unggah Surat LKJIP Baru</span>
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nomor Surat LKJIP</label>
+                                    <input type="text" id="suratNoInput" placeholder="Contoh: B-920/L.1/Rq.1/04/2026" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Perihal / Keterangan</label>
+                                    <input type="text" id="suratPerihalInput" placeholder="Perihal surat..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">File Berkas (PDF / Doc)</label>
+                                    <input type="file" id="suratFileInput" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-900 hover:file:bg-blue-100 dark:file:bg-slate-800 dark:file:text-amber-400">
+                                </div>
+                                <button onclick="handleUploadSurat()" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                                    Simpan & Unggah Surat LKJIP
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm lg:col-span-2 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                                <span class="flex items-center space-x-2">
+                                    <i class="fa-solid fa-folder-open text-blue-900 dark:text-amber-400"></i>
+                                    <span>Repository Arsip Surat LKJIP</span>
+                                </span>
+                                <span id="suratCountBadge" class="px-2.5 py-0.5 bg-blue-950 text-amber-400 rounded-full text-xs">3 Berkas</span>
+                            </h3>
+                            <div id="suratListContainer" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 6.5: DASAR HUKUM LKJIP -->
+                <div id="view-dasar-hukum" class="main-view space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Dasar Hukum & Regulasi LKJIP</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Undang-Undang, Peraturan Presiden, Peraturan Jaksa Agung, serta Pedoman Teknis Pelaporan Kinerja</p>
+                        </div>
+                        <button onclick="showNotification('Gunakan form di bawah untuk mengunggah regulasi baru')" class="mt-4 sm:mt-0 px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-medium hover:bg-blue-800 transition shadow-sm border border-amber-500/40">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-amber-400"></i> Unggah Regulasi Baru
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-file-arrow-up text-blue-900 dark:text-amber-400"></i>
+                                <span>Unggah Dokumen Dasar Hukum</span>
+                            </h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama / Judul Regulasi</label>
+                                    <input type="text" id="regTitleInput" placeholder="Contoh: PERMENPANRB No. 88 Tahun 2021" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kategori / Keterangan Singkat</label>
+                                    <input type="text" id="regDescInput" placeholder="Tentang Evaluasi SAKIP..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">File Dokumen (PDF)</label>
+                                    <input type="file" id="regFileInput" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-900 hover:file:bg-blue-100 dark:file:bg-slate-800 dark:file:text-amber-400">
+                                </div>
+                                <button onclick="handleUploadRegulasi()" class="w-full py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                                    Simpan & Unggah Regulasi
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm lg:col-span-2 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-between">
+                                <span class="flex items-center space-x-2">
+                                    <i class="fa-solid fa-folder-open text-blue-900 dark:text-amber-400"></i>
+                                    <span>Repository Arsip Dasar Hukum & Regulasi</span>
+                                </span>
+                                <span id="regCountBadge" class="px-2.5 py-0.5 bg-blue-950 text-amber-400 rounded-full text-xs">4 Berkas</span>
+                            </h3>
+                            <div id="regListContainer" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 7: ANALITIK -->
+                <div id="view-analytics" class="main-view space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Analitik Kinerja & Integrasi Sasaran Strategis</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Komparasi capaian IKS Sasaran Strategis secara real-time dan tren tahun ini.</p>
+                        </div>
+                        <button onclick="showNotification('Analitik disinkronisasi dengan Sasaran Strategis')" class="mt-4 sm:mt-0 px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-medium hover:bg-blue-800 transition shadow-sm border border-amber-500/40">
+                            <i class="fa-solid fa-rotate mr-1.5 text-amber-400"></i> Segarkan Analitik IKS
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 lg:col-span-1">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                                <i class="fa-solid fa-bullseye text-blue-900 dark:text-amber-400"></i>
+                                <span>Capaian IKS Sasaran Strategis Aktif</span>
+                            </h3>
+                            <div id="analyticsSasaranList" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                                <!-- Injected via JS -->
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm lg:col-span-2 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Tren Komparatif Capaian Kinerja Tahun Ini</h3>
+                            <div class="h-72 flex items-center justify-center">
+                                <canvas id="analyticsLineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 8: SETTINGS -->
+                <div id="view-settings" class="main-view space-y-6 hidden">
+                    <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Pengaturan Sistem Perencanaan</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Konfigurasi parameter aplikasi, bobot IKS, dan hak akses.</p>
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 max-w-xl">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Instansi Pimpinan</label>
+                            <input type="text" value="Kejaksaan Tinggi Aceh" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tahun Anggaran Aktif</label>
+                            <input type="text" value="2026" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                        </div>
+                        <button onclick="showNotification('Pengaturan berhasil disimpan')" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-medium hover:bg-blue-800 border border-amber-500/40">Simpan Perubahan</button>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal IKS Calculation (General for other IKS) -->
+    <div id="iksModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-calculator"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-sm font-bold text-slate-900 dark:text-white">Kalkulator IKS</h3>
+                        <p id="modalDesc" class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Deskripsi Indikator</p>
+                    </div>
+                </div>
+                <button onclick="closeIksModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Realisasi</label>
+                        <input type="number" id="modalReal" value="75" oninput="computeModalIks()" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target</label>
+                        <input type="number" id="modalTarget" value="75" oninput="computeModalIks()" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-xl">
+                <div>
+                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Capaian: (Realisasi / Target) × 100%</span>
+                    <h4 id="modalResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                </div>
+                <button onclick="saveIksValue()" class="px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-lg text-xs transition shadow-sm border border-amber-500/40">
+                    Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 2.1 dengan 3 Komponen (K1, K2, K3) dan Perhitungan Sesuai Permintaan -->
+    <div id="iks21Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 2.1 (Pengendalian Perkara)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Kalkulasi Capaian K1, K2, dan K3</p>
+                    </div>
+                </div>
+                <button onclick="closeIks21Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of 3 Components Inputs -->
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">1. Capaian K1 (Pengendalian Perkara Pidum)</span>
+                    <input type="number" id="iks21-k1" value="63" oninput="computeIks21Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">2. Capaian K2 (Pengendalian Perkara Pidsus)</span>
+                    <input type="number" id="iks21-k2" value="63" oninput="computeIks21Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">3. Capaian K3 (Pengendalian Perkara Datun/Militer)</span>
+                    <input type="number" id="iks21-k3" value="63" oninput="computeIks21Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span id="iks21AvgText">Rata-Rata (K1 + K2 + K3) / 3: 63.00</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target: 63</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus: (Rata-rata / Target (63)) × 100%</span>
+                        <h4 id="iks21FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks21Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 2.1
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 2.2 (Laporan Kegiatan & SP LID/PAM/DAL) Sesuai Permintaan -->
+    <div id="iks22Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 2.2 (Operasi Intelijen)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Kalkulasi Laporan Kegiatan & SP LID/PAM/DAL</p>
+                    </div>
+                </div>
+                <button onclick="closeIks22Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of 2 Components Inputs -->
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">1. Laporan Kegiatan</span>
+                    <input type="number" id="iks22-kegiatan" value="91" oninput="computeIks22Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">2. SP LID / PAM / DAL</span>
+                    <input type="number" id="iks22-splid" value="91" oninput="computeIks22Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span id="iks22RatioText">Hasil Pembagian (Kegiatan / SP LID) × 100%: 100.00%</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target: 91</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus: (Hasil % / Target (91)) × 100%</span>
+                        <h4 id="iks22FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks22Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 2.2
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 2.3 (Pemulihan Aset) dengan 3 Komponen dan Perhitungan Sesuai Permintaan -->
+    <div id="iks23Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-vault"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 2.3 (Pemulihan Aset Negara)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Kalkulasi 3 Komponen Pemulihan Aset</p>
+                    </div>
+                </div>
+                <button onclick="closeIks23Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of 3 Asset Components Inputs -->
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">1. Tingkat Keberhasilan Kegiatan Penelusuran Asset</span>
+                    <input type="number" id="iks23-komp1" value="85" oninput="computeIks23Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">2. Tingkat Keberhasilan Perampasan Aset Hasil Tindak Pidana</span>
+                    <input type="number" id="iks23-komp2" value="85" oninput="computeIks23Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">3. Tingkat Keberhasilan Pemulihan Aset Hasil Tindak Pidana</span>
+                    <input type="number" id="iks23-komp3" value="85" oninput="computeIks23Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span id="iks23AvgText">Rata-Rata (Komp 1 + Komp 2 + Komp 3) / 3: 85.00</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target: 85</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus: (Rata-rata / Target (85)) × 100%</span>
+                        <h4 id="iks23FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks23Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 2.3
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 3.1 (P1 dan P2 Datun) Sesuai Permintaan Baru -->
+    <div id="iks31Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-2xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 flex flex-col max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 3.1 (P1 & P2 Bidang Datun)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Kalkulasi Komponen P1, P2 dan Formula Akhir</p>
+                    </div>
+                </div>
+                <button onclick="closeIks31Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Group P1 -->
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <h4 class="text-xs font-bold text-blue-900 dark:text-amber-400 uppercase tracking-wide">1. Komponen P1 (Litigasi & Non-Litigasi)</h4>
+                    <div class="space-y-2 pl-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300">Tingkat keberhasilan penanganan perkara perdata jalur litigasi</span>
+                            <input type="number" id="iks31-p1-1" value="82" oninput="computeIks31Formula()" class="w-24 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-center font-bold dark:text-white">
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300">Tingkat keberhasilan penanganan perkara perdata jalur non-litigasi</span>
+                            <input type="number" id="iks31-p1-2" value="82" oninput="computeIks31Formula()" class="w-24 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-center font-bold dark:text-white">
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300">Tingkat keberhasilan penanganan perkara TUN jalur litigasi</span>
+                            <input type="number" id="iks31-p1-3" value="82" oninput="computeIks31Formula()" class="w-24 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-center font-bold dark:text-white">
+                        </div>
+                    </div>
+                    <div id="iks31P1AvgText" class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700">Rata-rata P1: 82.00</div>
+                </div>
+
+                <!-- Group P2 -->
+                <div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <h4 class="text-xs font-bold text-blue-900 dark:text-amber-400 uppercase tracking-wide">2. Komponen P2 (Pendapat & Pendampingan Hukum)</h4>
+                    <div class="space-y-2 pl-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300">Persentase penyelesaian pendapat hukum</span>
+                            <input type="number" id="iks31-p2-1" value="82" oninput="computeIks31Formula()" class="w-24 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-center font-bold dark:text-white">
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300">Persentase penyelesaian pendampingan dan audit hukum</span>
+                            <input type="number" id="iks31-p2-2" value="82" oninput="computeIks31Formula()" class="w-24 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-center font-bold dark:text-white">
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300">Persentase Tindakan hukum lain</span>
+                            <input type="number" id="iks31-p2-3" value="82" oninput="computeIks31Formula()" class="w-24 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-center font-bold dark:text-white">
+                        </div>
+                    </div>
+                    <div id="iks31P2AvgText" class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700">Rata-rata P2: 82.00</div>
+                </div>
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span id="iks31CombinedAvgText">Rata-Rata (P1 + P2) / 2: 82.00</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target: 82</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus: (Rata-rata Gabungan / Target (82)) × 100%</span>
+                        <h4 id="iks31FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks31Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 3.1
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 4.1 (Reformasi Birokrasi) dengan 4 Indikator dan Perhitungan Sesuai Permintaan -->
+    <div id="iks41Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 flex flex-col max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 4.1 (Reformasi Birokrasi)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Kalkulasi 4 Indikator Utama RB</p>
+                    </div>
+                </div>
+                <button onclick="closeIks41Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of 4 Indicators Inputs -->
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex-1">1. Rata-rata Survei Kepuasan Masyarakat (SKM) di wilayah Kejati Aceh</span>
+                    <input type="number" id="iks41-ind1" value="85" oninput="computeIks41Formula()" class="w-28 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex-1">2. Rata-rata Indikator Kinerja Pelaksanaan Anggaran (IKPA) di wilayah Kejati Aceh</span>
+                    <input type="number" id="iks41-ind2" value="85" oninput="computeIks41Formula()" class="w-28 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex-1">3. Rata-rata Hasil Evaluasi AKIP Internal di wilayah Kejati Aceh</span>
+                    <input type="number" id="iks41-ind3" value="85" oninput="computeIks41Formula()" class="w-28 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex-1">4. Rata-rata Nilai LKE ZI oleh TPD di wilayah Kejati Aceh</span>
+                    <input type="number" id="iks41-ind4" value="85" oninput="computeIks41Formula()" class="w-28 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span id="iks41AvgText">Rata-Rata (Ind 1 + Ind 2 + Ind 3 + Ind 4) / 4: 85.00</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target: 85</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus: (Rata-rata / Target (85)) × 100%</span>
+                        <h4 id="iks41FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks41Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 4.1
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 4.2 (Tingkat Penerapan Etika Profesi Jaksa) Sesuai Permintaan Baru -->
+    <div id="iks42Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 flex flex-col max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 4.2 (Etika Profesi Jaksa)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Kalkulasi Rasio Jaksa Tanpa Pelanggaran & Target</p>
+                    </div>
+                </div>
+                <button onclick="closeIks42Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of Inputs -->
+            <div class="space-y-3">
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex-1">1. Jumlah Jaksa yang tidak melakukan pelanggaran etika profesi jaksa</span>
+                    <input type="number" id="iks42-tanpa-pelanggaran" value="82" oninput="computeIks42Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200 flex-1">2. Jumlah total jaksa</span>
+                    <input type="number" id="iks42-total-jaksa" value="100" oninput="computeIks42Formula()" class="w-32 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                </div>
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span id="iks42RatioText">Tingkat Penerapan Etika ((Tanpa Pelanggaran / Total) × 100%): 82.00%</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target: 82</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus Akhir: (Tingkat Penerapan % / Target (82)) × 100%</span>
+                        <h4 id="iks42FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks42Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 4.2
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Khusus IKS 1.1 dengan 9 Sub-Layanan dan Perhitungan Sesuai Permintaan -->
+    <div id="iks11Modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-3xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Perhitungan Detail IKS 1.1 (9 Layanan Kinerja)</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Indeks persepsi publik terhadap citra Kejaksaan RI & Layanan Terintegrasi</p>
+                    </div>
+                </div>
+                <button onclick="closeIks11Modal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- List of 9 Services Realization Inputs -->
+            <div id="iks11ServicesContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[50vh]">
+                <!-- Populated via JS -->
+            </div>
+
+            <!-- Summary & Formula Block -->
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex flex-col sm:flex-row items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300 gap-2">
+                    <span id="iks11AvgText">Rata-Rata Realisasi 9 Layanan: 75.0</span>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg border border-amber-500/30">Target Tetap: 75</span>
+                </div>
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Rumus: (Rata-rata / Target (75)) × 100%</span>
+                        <h4 id="iks11FormulaResult" class="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">100%</h4>
+                    </div>
+                    <button onclick="saveIks11Values()" class="px-5 py-2.5 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                        Simpan Perhitungan IKS 1.1
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Daftar Lengkap Satker / Kejari & Cabjari di Wilayah Aceh -->
+    <div id="satkerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-4xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-building-shield"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Daftar Satuan Kerja (Kejari & Cabjari) di Wilayah Hukum Aceh</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Monitoring 25 Satker Binaan Kejaksaan Tinggi Aceh</p>
+                    </div>
+                </div>
+                <button onclick="closeSatkerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Satker Search Bar -->
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </span>
+                <input type="text" id="satkerSearchInput" oninput="filterSatkerList()" placeholder="Cari Kejari atau Cabjari..." class="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs dark:text-white focus:outline-none focus:border-amber-500">
+            </div>
+
+            <!-- Satker Grid Container with Checklists -->
+            <div id="satkerGridContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto flex-1 pr-1 max-h-[50vh]">
+                <!-- Populated via JS -->
+            </div>
+
+            <!-- Integration summary bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 gap-2">
+                <span id="selectedSatkerCountText" class="text-xs text-slate-500 font-medium">Terpilih: 0 dari 24 Satker aktif</span>
+                <div class="flex space-x-2">
+                    <button onclick="selectAllSatkers(true)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-200 transition">
+                        Pilih Semua
+                    </button>
+                    <button onclick="applySatkerChecklistIntegration()" class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold transition shadow-sm border border-amber-500/40">
+                        Terapkan ke Tampilan Utama
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit Profil Kejati Aceh -->
+    <div id="editProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Edit Profil Kejati Aceh</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Perbarui informasi dan struktur kelembagaan</p>
+                    </div>
+                </div>
+                <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Instansi</label>
+                    <input type="text" id="inputInstansiName" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Deskripsi / Sejarah Singkat</label>
+                    <textarea id="inputInstansiDesc" rows="3" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Visi Kejaksaan RI</label>
+                    <textarea id="inputVisiText" rows="2" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Misi Kejaksaan RI</label>
+                    <textarea id="inputMisiText" rows="3" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jabatan Kajati</label>
+                        <input type="text" id="inputKajatiTitle" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama / Pejabat Kajati</label>
+                        <input type="text" id="inputKajatiName" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jabatan Wakajati</label>
+                        <input type="text" id="inputWakajatiTitle" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama / Pejabat Wakajati</label>
+                        <input type="text" id="inputWakajatiName" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Jabatan Pimpinan 3</label>
+                        <input type="text" id="inputSubbagTitle" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama / Pejabat Pimpinan 3</label>
+                        <input type="text" id="inputSubbagName" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button onclick="closeEditProfileModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-medium hover:bg-slate-200 transition">
+                    Batal
+                </button>
+                <button onclick="saveProfileData()" class="px-4 py-2 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                    Simpan Perubahan Profil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Hub Dokumen Terintegrasi -->
+    <div id="dokumenHubModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-3xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-5 m-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-blue-900 text-amber-400 rounded-xl shadow">
+                        <i class="fa-solid fa-folder-tree"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Hub Dokumen LKJIP Disetujui</h3>
+                        <p class="text-[11px] text-blue-900 dark:text-amber-400 font-medium">Integrasi Laporan LKJIP, Dasar Hukum, dan Surat LKJIP</p>
+                    </div>
+                </div>
+                <button onclick="closeDokumenHubModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                <button onclick="setHubTab('lkjip')" id="hubTabLkjip" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-900 text-white transition border border-amber-500/40">Laporan LKJIP</button>
+                <button onclick="setHubTab('surat')" id="hubTabSurat" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Surat LKJIP</button>
+                <button onclick="setHubTab('regulasi')" id="hubTabRegulasi" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition">Dasar Hukum</button>
+            </div>
+
+            <div id="hubListContainer" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                <span id="hubTotalCountText" class="text-xs text-slate-500 font-medium">Total Dokumen Terintegrasi: 0</span>
+                <button onclick="closeDokumenHubModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-medium hover:bg-slate-200 transition">
+                    Tutup Hub
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // List of all Kejari and Cabjari in Aceh
+        const acehSatkers = [
+            { id: 1, name: "Kejari Banda Aceh", type: "Kejari", region: "Banda Aceh", checked: true },
+            { id: 2, name: "Kejari Aceh Besar", type: "Kejari", region: "Aceh Besar", checked: true },
+            { id: 3, name: "Kejari Sabang", type: "Kejari", region: "Sabang", checked: true },
+            { id: 4, name: "Kejari Pidie", type: "Kejari", region: "Pidie", checked: true },
+            { id: 5, name: "Kejari Pidie Jaya", type: "Kejari", region: "Pidie Jaya", checked: true },
+            { id: 6, name: "Kejari Bireuen", type: "Kejari", region: "Bireuen", checked: true },
+            { id: 7, name: "Kejari Lhokseumawe", type: "Kejari", region: "Lhokseumawe", checked: true },
+            { id: 8, name: "Kejari Aceh Utara", type: "Kejari", region: "Aceh Utara", checked: true },
+            { id: 9, name: "Kejari Aceh Timur", type: "Kejari", region: "Aceh Timur", checked: true },
+            { id: 10, name: "Kejari Langsa", type: "Kejari", region: "Langsa", checked: true },
+            { id: 11, name: "Kejari Aceh Tamiang", type: "Kejari", region: "Aceh Tamiang", checked: true },
+            { id: 12, name: "Kejari Takengon (Aceh Tengah)", type: "Kejari", region: "Aceh Tengah", checked: true },
+            { id: 13, name: "Kejari Bener Meriah", type: "Kejari", region: "Bener Meriah", checked: true },
+            { id: 14, name: "Kejari Gayo Lues", type: "Kejari", region: "Gayo Lues", checked: true },
+            { id: 15, name: "Kejari Aceh Tenggara", type: "Kejari", region: "Aceh Tenggara", checked: true },
+            { id: 16, name: "Kejari Meulaboh (Aceh Barat)", type: "Kejari", region: "Aceh Barat", checked: true },
+            { id: 17, name: "Kejari Nagan Raya", type: "Kejari", region: "Nagan Raya", checked: true },
+            { id: 18, name: "Kejari Aceh Barat Daya", type: "Kejari", region: "Aceh Barat Daya", checked: true },
+            { id: 19, name: "Kejari Tapaktuan (Aceh Selatan)", type: "Kejari", region: "Aceh Selatan", checked: true },
+            { id: 20, name: "Kejari Singkil (Aceh Singkil)", type: "Kejari", region: "Aceh Singkil", checked: true },
+            { id: 21, name: "Kejari Subulussalam", type: "Kejari", region: "Subulussalam", checked: true },
+            { id: 22, name: "Kejari Simeulue", type: "Kejari", region: "Simeulue", checked: true },
+            { id: 23, name: "Kejari Aceh Jaya", type: "Kejari", region: "Aceh Jaya", checked: true },
+            { id: 24, name: "Cabjari Pidie di Kota Bakti", type: "Cabjari", region: "Pidie", checked: true },
+            { id: 25, name: "Cabjari Aceh Selatan di Bakongan", type: "Cabjari", region: "Aceh Selatan", checked: true }
+        ];
+
+        // 9 Sub-services for IKS 1.1
+        let iks11Services = JSON.parse(localStorage.getItem('kejati_aceh_iks11_services')) || [
+            { id: 1, name: "Layanan PTSP", real: 75 },
+            { id: 2, name: "Layanan Pertimbangan Hukum pada Bidang Perdata dan Tata Usaha Lainnya", real: 75 },
+            { id: 3, name: "Layanan Pelayanan Hukum pada Bidang Perdata dan Tata Usaha Lainnya", real: 75 },
+            { id: 4, name: "Layanan Penyuluhan dan Penerangan Hukum pada Bidang Intelijen", real: 75 },
+            { id: 5, name: "Layanan Koordinasi Teknis Perkara Koneksitas pada Bidang Pidana Militer", real: 75 },
+            { id: 6, name: "Layanan Koordinasi dan Konsultasi Penanganan Perkara Pidana Umum pada Bidang Tindak Pidana Umum", real: 75 },
+            { id: 7, name: "Layanan Kepegawaian pada Bidang Pembinaan", real: 75 },
+            { id: 8, name: "Layanan Koordinasi dan Konsultasi Penanganan Perkara Tindak Pidana Korupsi dan Tindak Pidana Khusus Lainnya pada Bidang Tindak Pidana Khusus", real: 75 },
+            { id: 9, name: "Layanan Kesehatan untuk Pasien pada Klinik Pratama Adhyaksa", real: 75 }
+        ];
+
+        let iks21Data = JSON.parse(localStorage.getItem('kejati_aceh_iks21_data')) || { k1: 63, k2: 63, k3: 63 };
+        let iks22Data = JSON.parse(localStorage.getItem('kejati_aceh_iks22_data')) || { kegiatan: 91, splid: 91 };
+        let iks23Data = JSON.parse(localStorage.getItem('kejati_aceh_iks23_data')) || { komp1: 85, komp2: 85, komp3: 85 };
+        let iks31Data = JSON.parse(localStorage.getItem('kejati_aceh_iks31_data')) || { p1_1: 82, p1_2: 82, p1_3: 82, p2_1: 82, p2_2: 82, p2_3: 82 };
+        let iks41Data = JSON.parse(localStorage.getItem('kejati_aceh_iks41_data')) || { ind1: 85, ind2: 85, ind3: 85, ind4: 85 };
+        let iks42Data = JSON.parse(localStorage.getItem('kejati_aceh_iks42_data')) || { tanpaPelanggaran: 82, totalJaksa: 100 };
+
+        let iksData = JSON.parse(localStorage.getItem('kejati_aceh_iks')) || {
+            'iks11': { name: 'IKS 1.1', real: 75, target: 75, unit: '%' },
+            'iks21': { name: 'IKS 2.1', real: 63, target: 63, unit: '%' },
+            'iks22': { name: 'IKS 2.2', real: 91, target: 91, unit: '%' },
+            'iks23': { name: 'IKS 2.3', real: 85, target: 85, unit: '%' },
+            'iks31': { name: 'IKS 3.1', real: 82, target: 82, unit: '%' },
+            'iks41': { name: 'IKS 4.1', real: 85, target: 85, unit: '' },
+            'iks42': { name: 'IKS 4.2', real: 82, target: 82, unit: '%' }
+        };
+        let currentActiveIksKey = null;
+
+        let suratDinasList = JSON.parse(localStorage.getItem('kejati_aceh_surat')) || [
+            { id: 1, nomor: 'B-920/L.1/Rq.1/04/2026', perihal: 'Penyusunan Rencana Kinerja Tahunan (RKT) 2026', tanggal: '12 Okt 2026', file: 'Surat_RKT_2026.pdf' },
+            { id: 2, nomor: 'B-841/L.1/Rq.1/03/2026', perihal: 'Evaluasi Capaian Kinerja Triwulan I Kejati Aceh', tanggal: '05 Apr 2026', file: 'Evaluasi_TW1.pdf' },
+            { id: 3, nomor: 'B-612/L.1/Rq.1/01/2026', perihal: 'Pelaksanaan Perjanjian Kinerja Satuan Kerja di Wilayah Hukum Aceh', tanggal: '15 Jan 2026', file: 'Perjanjian_Kinerja.pdf' }
+        ];
+
+        let regulasiList = JSON.parse(localStorage.getItem('kejati_aceh_regulasi')) || [
+            { id: 1, title: 'PERMENPANRB No. 88 Tahun 2021', desc: 'Pedoman Evaluasi Akuntabilitas Kinerja Instansi Pemerintah', file: 'Permenpan_88_2021.pdf' },
+            { id: 2, title: 'Peraturan Jaksa Agung RI No. 1 Tahun 2022', desc: 'Standar Operasional Prosedur Perencanaan dan Pelaporan Kejaksaan', file: 'Perja_1_2022.pdf' },
+            { id: 3, title: 'UU No. 11 Tahun 2006 tentang Pemerintahan Aceh', desc: 'Dasar Hukum Kekhususan Wilayah dan Kewenangan Kejaksaan di Aceh', file: 'UU_11_2006.pdf' },
+            { id: 4, title: 'Inpres No. 7 Tahun 2014', desc: 'Aksi Pencegahan dan Pemberantasan Korupsi serta Perencanaan Akuntabel', file: 'Inpres_7_2014.pdf' }
+        ];
+
+        let lkjipStorage = JSON.parse(localStorage.getItem('kejati_aceh_lkjip')) || {
+            tw1: [
+                { id: 1, title: 'Laporan LKJIP TW I - Kejati Aceh', size: '2.4 MB', date: '08 Apr 2026', file: 'LKJIP_TW1_KejatiAceh.pdf' },
+                { id: 2, title: 'Rekapitulasi 24 Kejari Binaan TW I', size: '4.1 MB', date: '10 Apr 2026', file: 'Rekap_24_Kejari_TW1.pdf' }
+            ],
+            tw2: [
+                { id: 1, title: 'Laporan LKJIP TW II - Kejati Aceh', size: '2.8 MB', date: '12 Jul 2026', file: 'LKJIP_TW2_KejatiAceh.pdf' }
+            ],
+            tw3: [
+                { id: 1, title: 'Laporan LKJIP TW III - Kejati Aceh', size: '3.0 MB', date: '10 Okt 2026', file: 'LKJIP_TW3_KejatiAceh.pdf' }
+            ],
+            tw4: [
+                { id: 1, title: 'Laporan Kinerja Tahunan (LKJIP Final)', size: '5.5 MB', date: 'Dalam Proses', file: 'Draft_LKJIP_Tahunan.pdf' }
+            ]
+        };
+
+        let profileData = JSON.parse(localStorage.getItem('kejati_aceh_profile')) || {
+            name: "Kejaksaan Tinggi Aceh",
+            desc: "Kejaksaan Tinggi Aceh adalah lembaga penegak hukum yang melaksanakan kekuasaan negara di bidang penuntutan serta kewenangan atributif lain berdasarkan Undang-Undang di wilayah Provinsi Aceh dengan kekhususan otonomi khusus. Dipimpin oleh Kepala Kejaksaan Tinggi (Kajati) serta dikoordinasikan melalui Subbagian Perencanaan.",
+            visi: "\"Kejaksaan Republik Indonesia yang Bersih, Efektif, Efisien, Transparan, Akuntabel, serta Berwibawa dalam Penegakan Hukum dan Pelayanan Keadilan.\"",
+            misi: "1. Meningkatkan kualitas penegakan hukum yang berkeadilan.\n2. Optimalisasi pemulihan aset negara dan pengendalian perkara.\n3. Penguatan reformasi birokrasi dan tata kelola anggaran akuntabel.",
+            kajatiTitle: "Kepala Kejaksaan Tinggi Aceh",
+            kajatiName: "Kajati Aceh",
+            wakajatiTitle: "Wakil Kepala Kejaksaan Tinggi",
+            wakajatiName: "Wakajati Aceh",
+            subbagTitle: "Para Asisten",
+            subbagName: "Koordinator Para Asisten"
+        };
+
+        let currentLkjipTab = 'tw1';
+        let currentHubTab = 'lkjip';
+        
+        const todayDate = new Date();
+        let currentCalendarMonth = todayDate.getMonth();
+        let currentCalendarYear = todayDate.getFullYear();
+
+        let revenueChartInstance = null;
+        let categoryChartInstance = null;
+        let analyticsLineChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            applyLoadedProfile();
+            renderCalendar();
+            initCharts();
+            renderSuratDinasList();
+            renderRegulasiList();
+            setLkjipTab('tw1');
+            updateAllIksBadges();
+            updateTotalDocsCount();
+            initRealTimeClock();
+            renderSatkerGrid(acehSatkers);
+            fetchLiveWeatherAnalysis();
+
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+            sidebarClose.addEventListener('click', () => {
+                sidebar.classList.add('-translate-x-full');
+            });
+        });
+
+        // Real-time Digital WIB Clock function
+        function initRealTimeClock() {
+            function updateClock() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                const clockEl = document.getElementById('realTimeClock');
+                if (clockEl) {
+                    clockEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // Real-time automatic weather analysis based on date and time for Aceh region
+        function fetchLiveWeatherAnalysis() {
+            const now = new Date();
+            const hours = now.getHours();
+            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            const locDateEl = document.getElementById('weatherLocationDate');
+            if (locDateEl) locDateEl.innerText = `Banda Aceh, Aceh • ${dateStr}`;
+
+            let temp = 28;
+            let humidity = 78;
+            let wind = '12 km/j';
+            let condText = 'Cerah Berawan';
+            let iconClass = 'fa-solid fa-cloud-sun text-base';
+            let recText = 'Rekomendasi Operasional: Kondisi cuaca mendukung peninjauan lapangan 24 Satker Binaan.';
+
+            if (hours >= 18 || hours < 6) {
+                temp = 24;
+                humidity = 85;
+                wind = '8 km/j';
+                condText = 'Malam Berawan';
+                iconClass = 'fa-solid fa-moon text-base text-amber-400';
+                recText = 'Rekomendasi Operasional: Pemantauan arsip & dokumen daring di kantor berjalan optimal.';
+            } else if (hours >= 12 && hours <= 15) {
+                temp = 32;
+                humidity = 70;
+                wind = '15 km/j';
+                condText = 'Cerah Terik';
+                iconClass = 'fa-solid fa-sun text-base text-amber-500';
+                recText = 'Rekomendasi Operasional: Suhu cukup tinggi, pastikan hidrasi tim lapangan terjaga.';
+            } else {
+                temp = 29;
+                humidity = 76;
+                wind = '11 km/j';
+                condText = 'Berawan Stabil';
+                iconClass = 'fa-solid fa-cloud text-base text-blue-400';
+                recText = 'Rekomendasi Operasional: Kondisi sangat kondusif untuk koordinasi antar-Kejari.';
+            }
+
+            document.getElementById('weatherTemp').innerText = `${temp}°C`;
+            document.getElementById('weatherHumidity').innerText = `${humidity}%`;
+            document.getElementById('weatherWind').innerText = wind;
+            document.getElementById('weatherCond').innerText = condText;
+            document.getElementById('weatherStatusBadge').innerText = condText;
+            document.getElementById('weatherMainIcon').className = iconClass;
+            document.getElementById('weatherRecommendation').innerText = recText;
+
+            showNotification('Analisis cuaca wilayah Aceh diperbarui otomatis sesuai tanggal & waktu terkini.');
+        }
+
+        // Functions for IKS 1.1 Modal with 9 Services
+        function openIks11Modal() {
+            renderIks11ServicesInputs();
+            computeIks11Formula();
+            document.getElementById('iks11Modal').classList.remove('hidden');
+        }
+
+        function closeIks11Modal() {
+            document.getElementById('iks11Modal').classList.add('hidden');
+        }
+
+        // Functions for IKS 2.1 Modal with K1, K2, K3
+        function openIks21Modal() {
+            document.getElementById('iks21-k1').value = iks21Data.k1;
+            document.getElementById('iks21-k2').value = iks21Data.k2;
+            document.getElementById('iks21-k3').value = iks21Data.k3;
+            computeIks21Formula();
+            document.getElementById('iks21Modal').classList.remove('hidden');
+        }
+
+        function closeIks21Modal() {
+            document.getElementById('iks21Modal').classList.add('hidden');
+        }
+
+        function openIks22Modal() {
+            document.getElementById('iks22-kegiatan').value = iks22Data.kegiatan;
+            document.getElementById('iks22-splid').value = iks22Data.splid;
+            computeIks22Formula();
+            document.getElementById('iks22Modal').classList.remove('hidden');
+        }
+
+        function closeIks22Modal() {
+            document.getElementById('iks22Modal').classList.add('hidden');
+        }
+
+        function openIks23Modal() {
+            document.getElementById('iks23-komp1').value = iks23Data.komp1;
+            document.getElementById('iks23-komp2').value = iks23Data.komp2;
+            document.getElementById('iks23-komp3').value = iks23Data.komp3;
+            computeIks23Formula();
+            document.getElementById('iks23Modal').classList.remove('hidden');
+        }
+
+        function closeIks23Modal() {
+            document.getElementById('iks23Modal').classList.add('hidden');
+        }
+
+        function openIks31Modal() {
+            document.getElementById('iks31-p1-1').value = iks31Data.p1_1;
+            document.getElementById('iks31-p1-2').value = iks31Data.p1_2;
+            document.getElementById('iks31-p1-3').value = iks31Data.p1_3;
+            document.getElementById('iks31-p2-1').value = iks31Data.p2_1;
+            document.getElementById('iks31-p2-2').value = iks31Data.p2_2;
+            document.getElementById('iks31-p2-3').value = iks31Data.p2_3;
+            computeIks31Formula();
+            document.getElementById('iks31Modal').classList.remove('hidden');
+        }
+
+        function closeIks31Modal() {
+            document.getElementById('iks31Modal').classList.add('hidden');
+        }
+
+        function openIks41Modal() {
+            document.getElementById('iks41-ind1').value = iks41Data.ind1;
+            document.getElementById('iks41-ind2').value = iks41Data.ind2;
+            document.getElementById('iks41-ind3').value = iks41Data.ind3;
+            document.getElementById('iks41-ind4').value = iks41Data.ind4;
+            computeIks41Formula();
+            document.getElementById('iks41Modal').classList.remove('hidden');
+        }
+
+        function closeIks41Modal() {
+            document.getElementById('iks41Modal').classList.add('hidden');
+        }
+
+        function openIks42Modal() {
+            document.getElementById('iks42-tanpa-pelanggaran').value = iks42Data.tanpaPelanggaran;
+            document.getElementById('iks42-total-jaksa').value = iks42Data.totalJaksa;
+            computeIks42Formula();
+            document.getElementById('iks42Modal').classList.remove('hidden');
+        }
+
+        function closeIks42Modal() {
+            document.getElementById('iks42Modal').classList.add('hidden');
+        }
+
+        function computeIks42Formula() {
+            let tanpa = parseFloat(document.getElementById('iks42-tanpa-pelanggaran').value) || 0;
+            let total = parseFloat(document.getElementById('iks42-total-jaksa').value) || 1;
+
+            let rasioPct = (tanpa / total) * 100;
+            let target = 82;
+            let finalResult = Math.round((rasioPct / target) * 100);
+
+            document.getElementById('iks42RatioText').innerText = `Tingkat Penerapan Etika ((Tanpa Pelanggaran / Total) × 100%): ${rasioPct.toFixed(2)}%`;
+            document.getElementById('iks42FormulaResult').innerText = `${finalResult}% (${rasioPct.toFixed(1)}% / Target 82) × 100%`;
+        }
+
+        function saveIks42Values() {
+            let tanpa = parseFloat(document.getElementById('iks42-tanpa-pelanggaran').value) || 0;
+            let total = parseFloat(document.getElementById('iks42-total-jaksa').value) || 1;
+
+            iks42Data = { tanpaPelanggaran: tanpa, totalJaksa: total };
+            let rasioPct = (tanpa / total) * 100;
+            let target = 82;
+            let finalResult = Math.round((rasioPct / target) * 100);
+
+            iksData['iks42'].real = Math.round(rasioPct);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks42_data', JSON.stringify(iks42Data));
+
+            const badge = document.getElementById('badge-iks42');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks42Modal();
+            showNotification('Perhitungan IKS 4.2 (Etika Profesi Jaksa) berhasil disimpan!');
+        }
+
+        function computeIks21Formula() {
+            let k1 = parseFloat(document.getElementById('iks21-k1').value) || 0;
+            let k2 = parseFloat(document.getElementById('iks21-k2').value) || 0;
+            let k3 = parseFloat(document.getElementById('iks21-k3').value) || 0;
+
+            let avg = (k1 + k2 + k3) / 3;
+            let target = 63;
+            let finalResult = Math.round((avg / target) * 100);
+
+            document.getElementById('iks21AvgText').innerText = `Rata-Rata (K1 + K2 + K3) / 3: ${avg.toFixed(2)}`;
+            document.getElementById('iks21FormulaResult').innerText = `${finalResult}% (Rata-rata ${avg.toFixed(1)} / Target 63) × 100%`;
+        }
+
+        function saveIks21Values() {
+            let k1 = parseFloat(document.getElementById('iks21-k1').value) || 0;
+            let k2 = parseFloat(document.getElementById('iks21-k2').value) || 0;
+            let k3 = parseFloat(document.getElementById('iks21-k3').value) || 0;
+
+            iks21Data = { k1, k2, k3 };
+            let avg = (k1 + k2 + k3) / 3;
+            let target = 63;
+            let finalResult = Math.round((avg / target) * 100);
+
+            iksData['iks21'].real = Math.round(avg);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks21_data', JSON.stringify(iks21Data));
+
+            const badge = document.getElementById('badge-iks21');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks21Modal();
+            showNotification('Perhitungan IKS 2.1 (K1, K2, K3) berhasil disimpan dan diperbarui!');
+        }
+
+        function computeIks22Formula() {
+            let kegiatan = parseFloat(document.getElementById('iks22-kegiatan').value) || 0;
+            let splid = parseFloat(document.getElementById('iks22-splid').value) || 1;
+
+            let ratioPct = (kegiatan / splid) * 100;
+            let target = 91;
+            let finalResult = Math.round((ratioPct / target) * 100);
+
+            document.getElementById('iks22RatioText').innerText = `Hasil Pembagian (Kegiatan / SP LID) × 100%: ${ratioPct.toFixed(2)}%`;
+            document.getElementById('iks22FormulaResult').innerText = `${finalResult}% (${ratioPct.toFixed(1)}% / Target 91) × 100%`;
+        }
+
+        function saveIks22Values() {
+            let kegiatan = parseFloat(document.getElementById('iks22-kegiatan').value) || 0;
+            let splid = parseFloat(document.getElementById('iks22-splid').value) || 1;
+
+            iks22Data = { kegiatan, splid };
+            let ratioPct = (kegiatan / splid) * 100;
+            let target = 91;
+            let finalResult = Math.round((ratioPct / target) * 100);
+
+            iksData['iks22'].real = Math.round(ratioPct);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks22_data', JSON.stringify(iks22Data));
+
+            const badge = document.getElementById('badge-iks22');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks22Modal();
+            showNotification('Perhitungan IKS 2.2 berhasil disimpan!');
+        }
+
+        function computeIks23Formula() {
+            let komp1 = parseFloat(document.getElementById('iks23-komp1').value) || 0;
+            let komp2 = parseFloat(document.getElementById('iks23-komp2').value) || 0;
+            let komp3 = parseFloat(document.getElementById('iks23-komp3').value) || 0;
+
+            let avg = (komp1 + komp2 + komp3) / 3;
+            let target = 85;
+            let finalResult = Math.round((avg / target) * 100);
+
+            document.getElementById('iks23AvgText').innerText = `Rata-Rata (Komp 1 + Komp 2 + Komp 3) / 3: ${avg.toFixed(2)}`;
+            document.getElementById('iks23FormulaResult').innerText = `${finalResult}% (Rata-rata ${avg.toFixed(1)} / Target 85) × 100%`;
+        }
+
+        function computeIks31Formula() {
+            let p1_1 = parseFloat(document.getElementById('iks31-p1-1').value) || 0;
+            let p1_2 = parseFloat(document.getElementById('iks31-p1-2').value) || 0;
+            let p1_3 = parseFloat(document.getElementById('iks31-p1-3').value) || 0;
+            let p2_1 = parseFloat(document.getElementById('iks31-p2-1').value) || 0;
+            let p2_2 = parseFloat(document.getElementById('iks31-p2-2').value) || 0;
+            let p2_3 = parseFloat(document.getElementById('iks31-p2-3').value) || 0;
+
+            let avgP1 = (p1_1 + p1_2 + p1_3) / 3;
+            let avgP2 = (p2_1 + p2_2 + p2_3) / 3;
+            let combinedAvg = (avgP1 + avgP2) / 2;
+            let target = 82;
+            let finalResult = Math.round((combinedAvg / target) * 100);
+
+            document.getElementById('iks31P1AvgText').innerText = `Rata-rata P1: ${avgP1.toFixed(2)}`;
+            document.getElementById('iks31P2AvgText').innerText = `Rata-rata P2: ${avgP2.toFixed(2)}`;
+            document.getElementById('iks31CombinedAvgText').innerText = `Rata-Rata (P1 + P2) / 2: ${combinedAvg.toFixed(2)}`;
+            document.getElementById('iks31FormulaResult').innerText = `${finalResult}% (Rata-rata ${combinedAvg.toFixed(1)} / Target 82) × 100%`;
+        }
+
+        function computeIks41Formula() {
+            let ind1 = parseFloat(document.getElementById('iks41-ind1').value) || 0;
+            let ind2 = parseFloat(document.getElementById('iks41-ind2').value) || 0;
+            let ind3 = parseFloat(document.getElementById('iks41-ind3').value) || 0;
+            let ind4 = parseFloat(document.getElementById('iks41-ind4').value) || 0;
+
+            let avg = (ind1 + ind2 + ind3 + ind4) / 4;
+            let target = 85;
+            let finalResult = Math.round((avg / target) * 100);
+
+            document.getElementById('iks41AvgText').innerText = `Rata-Rata (Ind 1 + Ind 2 + Ind 3 + Ind 4) / 4: ${avg.toFixed(2)}`;
+            document.getElementById('iks41FormulaResult').innerText = `${finalResult}% (Rata-rata ${avg.toFixed(1)} / Target 85) × 100%`;
+        }
+
+        function saveIks23Values() {
+            let komp1 = parseFloat(document.getElementById('iks23-komp1').value) || 0;
+            let komp2 = parseFloat(document.getElementById('iks23-komp2').value) || 0;
+            let komp3 = parseFloat(document.getElementById('iks23-komp3').value) || 0;
+
+            iks23Data = { komp1, komp2, komp3 };
+            let avg = (komp1 + komp2 + komp3) / 3;
+            let target = 85;
+            let finalResult = Math.round((avg / target) * 100);
+
+            iksData['iks23'].real = Math.round(avg);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks23_data', JSON.stringify(iks23Data));
+
+            const badge = document.getElementById('badge-iks23');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks23Modal();
+            showNotification('Perhitungan IKS 2.3 (Pemulihan Aset) berhasil disimpan dan diperbarui!');
+        }
+
+        function saveIks31Values() {
+            let p1_1 = parseFloat(document.getElementById('iks31-p1-1').value) || 0;
+            let p1_2 = parseFloat(document.getElementById('iks31-p1-2').value) || 0;
+            let p1_3 = parseFloat(document.getElementById('iks31-p1-3').value) || 0;
+            let p2_1 = parseFloat(document.getElementById('iks31-p2-1').value) || 0;
+            let p2_2 = parseFloat(document.getElementById('iks31-p2-2').value) || 0;
+            let p2_3 = parseFloat(document.getElementById('iks31-p2-3').value) || 0;
+
+            iks31Data = { p1_1, p1_2, p1_3, p2_1, p2_2, p2_3 };
+            let avgP1 = (p1_1 + p1_2 + p1_3) / 3;
+            let avgP2 = (p2_1 + p2_2 + p2_3) / 3;
+            let combinedAvg = (avgP1 + avgP2) / 2;
+            let target = 82;
+            let finalResult = Math.round((combinedAvg / target) * 100);
+
+            iksData['iks31'].real = Math.round(combinedAvg);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks31_data', JSON.stringify(iks31Data));
+
+            const badge = document.getElementById('badge-iks31');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks31Modal();
+            showNotification('Perhitungan IKS 3.1 (P1 & P2 Datun) berhasil disimpan dan diperbarui!');
+        }
+
+        function saveIks41Values() {
+            let ind1 = parseFloat(document.getElementById('iks41-ind1').value) || 0;
+            let ind2 = parseFloat(document.getElementById('iks41-ind2').value) || 0;
+            let ind3 = parseFloat(document.getElementById('iks41-ind3').value) || 0;
+            let ind4 = parseFloat(document.getElementById('iks41-ind4').value) || 0;
+
+            iks41Data = { ind1, ind2, ind3, ind4 };
+            let avg = (ind1 + ind2 + ind3 + ind4) / 4;
+            let target = 85;
+            let finalResult = Math.round((avg / target) * 100);
+
+            iksData['iks41'].real = Math.round(avg);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks41_data', JSON.stringify(iks41Data));
+
+            const badge = document.getElementById('badge-iks41');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks41Modal();
+            showNotification('Perhitungan IKS 4.1 (Reformasi Birokrasi) berhasil disimpan dan diperbarui!');
+        }
+
+        function renderIks11ServicesInputs() {
+            const container = document.getElementById('iks11ServicesContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            iks11Services.forEach((s, idx) => {
+                container.innerHTML += `
+                    <div class="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-start space-x-2.5 flex-1">
+                            <span class="w-6 h-6 rounded-lg bg-blue-950 text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${idx + 1}</span>
+                            <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">${s.name}</span>
+                        </div>
+                        <div class="w-full sm:w-36 shrink-0 flex items-center space-x-2">
+                            <input type="number" id="iks11-svc-${s.id}" value="${s.real}" oninput="computeIks11Formula()" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-bold text-center dark:text-white">
+                            <span class="text-xs text-slate-500 font-bold">PT</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function computeIks11Formula() {
+            let sum = 0;
+            iks11Services.forEach(s => {
+                const inputEl = document.getElementById(`iks11-svc-${s.id}`);
+                let val = inputEl ? parseFloat(inputEl.value) || 0 : s.real;
+                sum += val;
+            });
+
+            let avg = sum / iks11Services.length;
+            let target = 75;
+            let finalResult = Math.round((avg / target) * 100);
+
+            document.getElementById('iks11AvgText').innerText = `Rata-Rata Realisasi 9 Layanan: ${avg.toFixed(2)}`;
+            document.getElementById('iks11FormulaResult').innerText = `${finalResult}% (Rata-rata ${avg.toFixed(1)} / Target 75) × 100%`;
+        }
+
+        function saveIks11Values() {
+            let sum = 0;
+            iks11Services.forEach(s => {
+                const inputEl = document.getElementById(`iks11-svc-${s.id}`);
+                if (inputEl) {
+                    s.real = parseFloat(inputEl.value) || 0;
+                }
+                sum += s.real;
+            });
+
+            let avg = sum / iks11Services.length;
+            let target = 75;
+            let finalResult = Math.round((avg / target) * 100);
+
+            iksData['iks11'].real = Math.round(avg);
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            localStorage.setItem('kejati_aceh_iks11_services', JSON.stringify(iks11Services));
+
+            const badge = document.getElementById('badge-iks11');
+            if (badge) badge.innerText = finalResult + '%';
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIks11Modal();
+            showNotification('Perhitungan IKS 1.1 dari 9 layanan berhasil disimpan dan diperbarui!');
+        }
+
+        function openSatkerModal() {
+            renderSatkerGrid(acehSatkers);
+            updateSelectedSatkerCount();
+            document.getElementById('satkerModal').classList.remove('hidden');
+        }
+
+        function closeSatkerModal() {
+            document.getElementById('satkerModal').classList.add('hidden');
+        }
+
+        function renderSatkerGrid(list) {
+            const container = document.getElementById('satkerGridContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic py-6 text-center col-span-full">Satuan kerja tidak ditemukan.</p>`;
+                return;
+            }
+            list.forEach(s => {
+                let badgeColor = s.type === 'Kejari' ? 'bg-blue-950 text-amber-400 dark:bg-blue-950/80 dark:text-amber-300' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300';
+                container.innerHTML += `
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-between cursor-pointer hover:border-amber-500 transition" onclick="toggleSatkerCheck(${s.id}, event)">
+                        <div class="flex items-center space-x-2.5 overflow-hidden pointer-events-none">
+                            <input type="checkbox" id="satker-chk-${s.id}" ${s.checked ? 'checked' : ''} class="w-4 h-4 text-blue-900 rounded border-slate-300 focus:ring-amber-500 cursor-pointer pointer-events-auto" onclick="event.stopPropagation(); onSatkerCheckboxChange(${s.id}, this)">
+                            <div class="overflow-hidden">
+                                <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${s.name}</h4>
+                                <p class="text-[10px] text-slate-500 truncate">Wilayah: ${s.region}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold shrink-0 ${badgeColor}">${s.type}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleSatkerCheck(id, event) {
+            if (event && event.target.tagName === 'INPUT') return;
+            const satker = acehSatkers.find(s => s.id === id);
+            if (satker) {
+                satker.checked = !satker.checked;
+                const chk = document.getElementById('satker-chk-' + id);
+                if (chk) chk.checked = satker.checked;
+                updateSelectedSatkerCount();
+            }
+        }
+
+        function onSatkerCheckboxChange(id, checkboxEl) {
+            const satker = acehSatkers.find(s => s.id === id);
+            if (satker) {
+                satker.checked = checkboxEl.checked;
+                updateSelectedSatkerCount();
+            }
+        }
+
+        function selectAllSatkers(status) {
+            acehSatkers.forEach(s => s.checked = status);
+            renderSatkerGrid(acehSatkers);
+            updateSelectedSatkerCount();
+        }
+
+        function updateSelectedSatkerCount() {
+            const count = acehSatkers.filter(s => s.checked).length;
+            const el = document.getElementById('selectedSatkerCountText');
+            if (el) el.innerText = `Terpilih: ${count} dari ${acehSatkers.length} Satker aktif`;
+        }
+
+        function applySatkerChecklistIntegration() {
+            const checkedCount = acehSatkers.filter(s => s.checked).length;
+            const pct = Math.round((checkedCount / acehSatkers.length) * 100);
+            
+            const satkerCardStat = document.querySelector('div[onclick="openSatkerModal()"] h3');
+            if (satkerCardStat) {
+                satkerCardStat.innerText = `${checkedCount} / ${acehSatkers.length} Satker`;
+            }
+
+            const satkerSub = document.querySelector('div[onclick="openSatkerModal()"] span.inline-flex');
+            if (satkerSub) {
+                satkerSub.innerHTML = `<i class="fa-solid fa-check mr-1"></i> ${pct}% Pelaporan Aktif`;
+            }
+
+            closeSatkerModal();
+            showNotification(`Integrasi berhasil! Menampilkan ${checkedCount} Satuan Kerja terpilih pada dashboard utama.`);
+        }
+
+        function filterSatkerList() {
+            const q = document.getElementById('satkerSearchInput').value.toLowerCase();
+            const filtered = acehSatkers.filter(s => s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q) || s.type.toLowerCase().includes(q));
+            renderSatkerGrid(filtered);
+        }
+
+        function applyLoadedProfile() {
+            document.getElementById('profileInstansiName').innerText = profileData.name;
+            document.getElementById('profileInstansiDesc').innerText = profileData.desc;
+            document.getElementById('profileVisiText').innerText = profileData.visi;
+            
+            let misiHtml = '';
+            profileData.misi.split('\n').forEach(line => {
+                if(line.trim()) misiHtml += `<p>${line}</p>`;
+            });
+            document.getElementById('profileMisiText').innerHTML = misiHtml;
+
+            document.getElementById('profileKajatiTitle').innerText = profileData.kajatiTitle;
+            document.getElementById('profileKajatiName').innerText = profileData.kajatiName;
+            document.getElementById('profileWakajatiTitle').innerText = profileData.wakajatiTitle;
+            document.getElementById('profileWakajatiName').innerText = profileData.wakajatiName;
+            document.getElementById('profileSubbagTitle').innerText = profileData.subbagTitle;
+            document.getElementById('profileSubbagName').innerText = profileData.subbagName;
+        }
+
+        function openEditProfileModal() {
+            document.getElementById('inputInstansiName').value = profileData.name;
+            document.getElementById('inputInstansiDesc').value = profileData.desc;
+            document.getElementById('inputVisiText').value = profileData.visi;
+            document.getElementById('inputMisiText').value = profileData.misi;
+            document.getElementById('inputKajatiTitle').value = profileData.kajatiTitle;
+            document.getElementById('inputKajatiName').value = profileData.kajatiName;
+            document.getElementById('inputWakajatiTitle').value = profileData.wakajatiTitle;
+            document.getElementById('inputWakajatiName').value = profileData.wakajatiName;
+            document.getElementById('inputSubbagTitle').value = profileData.subbagTitle;
+            document.getElementById('inputSubbagName').value = profileData.subbagName;
+            document.getElementById('editProfileModal').classList.remove('hidden');
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        }
+
+        function saveProfileData() {
+            profileData.name = document.getElementById('inputInstansiName').value;
+            profileData.desc = document.getElementById('inputInstansiDesc').value;
+            profileData.visi = document.getElementById('inputVisiText').value;
+            profileData.misi = document.getElementById('inputMisiText').value;
+            profileData.kajatiTitle = document.getElementById('inputKajatiTitle').value;
+            profileData.kajatiName = document.getElementById('inputKajatiName').value;
+            profileData.wakajatiTitle = document.getElementById('inputWakajatiTitle').value;
+            profileData.wakajatiName = document.getElementById('inputWakajatiName').value;
+            profileData.subbagTitle = document.getElementById('inputSubbagTitle').value;
+            profileData.subbagName = document.getElementById('inputSubbagName').value;
+
+            localStorage.setItem('kejati_aceh_profile', JSON.stringify(profileData));
+            applyLoadedProfile();
+            closeEditProfileModal();
+            showNotification('Profil Kejati Aceh dan struktur pimpinan berhasil disimpan permanen!');
+        }
+
+        function switchMainView(viewId) {
+            document.querySelectorAll('.main-view').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('view-' + viewId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-link').forEach(el => {
+                el.classList.remove('bg-blue-900', 'text-white', 'border', 'border-amber-500/40');
+                el.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+            });
+
+            const activeNav = document.getElementById('nav-' + viewId);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+                activeNav.classList.add('bg-blue-900', 'text-white', 'border', 'border-amber-500/40');
+            }
+
+            if (viewId === 'dashboard') {
+                setTimeout(() => { if (revenueChartInstance) revenueChartInstance.resize(); }, 50);
+            }
+            if (viewId === 'analytics') {
+                renderAnalyticsSasaranIntegration();
+                setTimeout(() => { if (analyticsLineChartInstance) analyticsLineChartInstance.resize(); }, 50);
+            }
+        }
+
+        function renderAnalyticsSasaranIntegration() {
+            const container = document.getElementById('analyticsSasaranList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            Object.keys(iksData).forEach(key => {
+                let d = iksData[key];
+                let pct = Math.round((d.real / d.target) * 100);
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <div>
+                            <span class="text-[10px] font-bold text-blue-900 dark:text-amber-400 uppercase">${d.name}</span>
+                            <h4 class="text-xs font-semibold text-slate-900 dark:text-white">Realisasi: ${d.real} / Target: ${d.target}</h4>
+                        </div>
+                        <span class="px-2.5 py-1 bg-blue-950 text-amber-400 rounded-lg text-xs font-bold">${pct}${d.unit}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleSubmenu(submenuId, arrowId) {
+            const sub = document.getElementById(submenuId);
+            const arrow = document.getElementById(arrowId);
+            if (sub) {
+                sub.classList.toggle('hidden');
+                if (arrow) {
+                    arrow.classList.toggle('rotate-180');
+                }
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun text-base text-amber-400' : 'fa-solid fa-moon text-base';
+            document.getElementById('themeLabel').innerText = isDark ? 'Terang' : 'Gelap';
+        }
+
+        function showNotification(msg) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-3 transition-all duration-300 transform translate-y-2 opacity-0 border border-amber-500/40';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-amber-400 text-sm"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 50);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 3500);
+        }
+
+        function openIksModal(key, title, desc, real, unit) {
+            currentActiveIksKey = key;
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('modalReal').value = iksData[key].real;
+            document.getElementById('modalTarget').value = iksData[key].target;
+            computeModalIks();
+            document.getElementById('iksModal').classList.remove('hidden');
+        }
+
+        function closeIksModal() {
+            document.getElementById('iksModal').classList.add('hidden');
+        }
+
+        function computeModalIks() {
+            const real = parseFloat(document.getElementById('modalReal').value) || 0;
+            const target = parseFloat(document.getElementById('modalTarget').value) || 1;
+            let percentage = Math.round((real / target) * 100);
+            document.getElementById('modalResult').innerText = percentage + iksData[currentActiveIksKey].unit;
+        }
+
+        function saveIksValue() {
+            const real = parseFloat(document.getElementById('modalReal').value) || 0;
+            const target = parseFloat(document.getElementById('modalTarget').value) || 1;
+            iksData[currentActiveIksKey].real = real;
+            iksData[currentActiveIksKey].target = target;
+            
+            localStorage.setItem('kejati_aceh_iks', JSON.stringify(iksData));
+            let percentage = Math.round((real / target) * 100);
+            const badge = document.getElementById('badge-' + currentActiveIksKey);
+            if (badge) badge.innerText = percentage + iksData[currentActiveIksKey].unit;
+
+            updateAllIksBadges();
+            updateChartsFromIks();
+            closeIksModal();
+            showNotification('Capaian Indikator Kinerja Sasaran berhasil disimpan permanen & terintegrasi dengan grafik!');
+        }
+
+        function updateAllIksBadges() {
+            let keys = Object.keys(iksData);
+            let totalPct = 0;
+            keys.forEach(k => {
+                let d = iksData[k];
+                let pct = Math.round((d.real / d.target) * 100);
+                totalPct += pct;
+                const b = document.getElementById('badge-' + k);
+                if (b) b.innerText = pct + d.unit;
+            });
+            let avg = Math.round(totalPct / keys.length);
+            const statAvg = document.getElementById('statAvgIks');
+            if (statAvg) statAvg.innerText = avg + '%';
+        }
+
+        function updateChartsFromIks() {
+            if (!categoryChartInstance) return;
+            
+            let ss1 = Math.round((iksData['iks11'].real / iksData['iks11'].target) * 100);
+            let ss2 = Math.round(((iksData['iks21'].real/iksData['iks21'].target + iksData['iks22'].real/iksData['iks22'].target + iksData['iks23'].real/iksData['iks23'].target)/3) * 100);
+            let ss3 = Math.round((iksData['iks31'].real / iksData['iks31'].target) * 100);
+            let ss4 = Math.round(((iksData['iks41'].real/iksData['iks41'].target + iksData['iks42'].real/iksData['iks42'].target)/2) * 100);
+
+            categoryChartInstance.data.datasets[0].data = [ss1, ss2, ss3, ss4];
+            categoryChartInstance.update();
+        }
+
+        function renderCalendar() {
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            document.getElementById('calendarMonthYear').innerText = monthNames[currentCalendarMonth] + ' ' + currentCalendarYear;
+
+            const grid = document.getElementById('calendarDaysGrid');
+            grid.innerHTML = '';
+
+            const firstDayIndex = new Date(currentCalendarYear, currentCalendarMonth, 1).getDay();
+            const totalDays = new Date(currentCalendarYear, currentCalendarMonth + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                grid.innerHTML += `<div></div>`;
+            }
+
+            const now = new Date();
+            for (let day = 1; day <= totalDays; day++) {
+                let isToday = (day === now.getDate() && currentCalendarMonth === now.getMonth() && currentCalendarYear === now.getFullYear());
+                let isEvent = (day === 10 || day === 22 || day === 28);
+                let cls = "h-7 w-7 mx-auto flex items-center justify-center rounded-lg text-xs transition ";
+                if (isToday) {
+                    cls += "bg-blue-900 text-amber-400 font-bold border border-amber-500";
+                } else if (isEvent) {
+                    cls += "bg-blue-100 dark:bg-blue-950/80 text-blue-900 dark:text-amber-300 font-bold border border-blue-300 dark:border-blue-800";
+                } else {
+                    cls += "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300";
+                }
+                grid.innerHTML += `<div class="${cls}">${day}</div>`;
+            }
+        }
+
+        function changeMonth(direction) {
+            currentCalendarMonth += direction;
+            if (currentCalendarMonth > 11) {
+                currentCalendarMonth = 0;
+                currentCalendarYear++;
+            } else if (currentCalendarMonth < 0) {
+                currentCalendarMonth = 11;
+                currentCalendarYear--;
+            }
+            renderCalendar();
+        }
+
+        function initCharts() {
+            let ss1 = Math.round((iksData['iks11'].real / iksData['iks11'].target) * 100);
+            let ss2 = Math.round(((iksData['iks21'].real/iksData['iks21'].target + iksData['iks22'].real/iksData['iks22'].target + iksData['iks23'].real/iksData['iks23'].target)/3) * 100);
+            let ss3 = Math.round((iksData['iks31'].real / iksData['iks31'].target) * 100);
+            let ss4 = Math.round(((iksData['iks41'].real/iksData['iks41'].target + iksData['iks42'].real/iksData['iks42'].target)/2) * 100);
+
+            const ctxCat = document.getElementById('categoryChart').getContext('2d');
+            categoryChartInstance = new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sasaran 1', 'Sasaran 2', 'Sasaran 3', 'Sasaran 4'],
+                    datasets: [{
+                        data: [ss1, ss2, ss3, ss4],
+                        backgroundColor: ['#1e3a8a', '#3b82f6', '#10b981', '#d97706'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+
+            const ctxAna = document.getElementById('analyticsLineChart').getContext('2d');
+            analyticsLineChartInstance = new Chart(ctxAna, {
+                type: 'line',
+                data: {
+                    labels: ['TW I 2026', 'TW II 2026', 'TW III 2026', 'TW IV 2026 (Target)'],
+                    datasets: [{
+                        label: 'Capaian IKS Tahun Ini (%)',
+                        data: [Math.min(100, ss1 - 3), Math.min(100, ss2 - 1), ss3, 100],
+                        borderColor: '#1e3a8a',
+                        backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { min: 80, max: 100 } }
+                }
+            });
+        }
+
+        function setLkjipTab(tabKey) {
+            currentLkjipTab = tabKey;
+            ['tw1', 'tw2', 'tw3', 'tw4'].forEach(t => {
+                const btn = document.getElementById('btn-tab-' + t);
+                if (btn) {
+                    if (t === tabKey) {
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-blue-900 text-white transition border border-amber-500/40";
+                    } else {
+                        btn.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition";
+                    }
+                }
+            });
+
+            renderLkjipContentContainer();
+        }
+
+        function renderLkjipContentContainer() {
+            const container = document.getElementById('lkjipContentContainer');
+            let docs = lkjipStorage[currentLkjipTab] || [];
+            let quarterTitle = currentLkjipTab.toUpperCase().replace('TW', 'Triwulan ');
+
+            let html = `
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <h2 class="text-base font-bold text-slate-900 dark:text-white">Penyimpanan & Unggah Dokumen ${quarterTitle}</h2>
+                        <p class="text-xs text-slate-500">Unggah file laporan LKJIP atau evaluasi kinerja untuk ${quarterTitle} Tahun Anggaran 2026</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Judul Dokumen / Satker</label>
+                        <input type="text" id="lkjipTitleInput" placeholder="Contoh: LKJIP TW I Kejari Banda Aceh" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">File Berkas (PDF)</label>
+                        <input type="file" id="lkjipFileInput" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-900 hover:file:bg-blue-100 dark:file:bg-slate-800 dark:file:text-amber-400">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="handleUploadLkjipFile()" class="w-full py-2 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-xl text-xs transition shadow-sm border border-amber-500/40">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-amber-400"></i> Unggah ke Arsip
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Daftar Arsip Dokumen ${quarterTitle}</h3>
+                    <div class="space-y-2">
+            `;
+
+            if (docs.length === 0) {
+                html += `<p class="text-xs text-slate-400 italic py-4 text-center">Belum ada dokumen yang diunggah untuk triwulan ini.</p>`;
+            } else {
+                docs.forEach(d => {
+                    html += `
+                        <div class="flex items-center justify-between p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-amber-400 rounded-lg">
+                                    <i class="fa-solid fa-file-pdf text-base"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-900 dark:text-white">${d.title}</h4>
+                                    <p class="text-[10px] text-slate-400">Ukuran: ${d.size} • Diunggah: ${d.date}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="showNotification('Mengunduh ${d.file}...')" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-blue-900 hover:text-white text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium transition">
+                                    <i class="fa-solid fa-download mr-1"></i> Unduh
+                                </button>
+                                <button onclick="deleteLkjipDoc('${currentLkjipTab}', ${d.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function handleUploadLkjipFile() {
+            const titleInput = document.getElementById('lkjipTitleInput');
+            const fileInput = document.getElementById('lkjipFileInput');
+            if (!titleInput.value) {
+                showNotification('Harap masukkan judul dokumen terlebih dahulu!');
+                return;
+            }
+
+            let newId = lkjipStorage[currentLkjipTab].length > 0 ? Math.max(...lkjipStorage[currentLkjipTab].map(d => d.id)) + 1 : 1;
+            let fileName = fileInput.files[0] ? fileInput.files[0].name : 'Dokumen_LKJIP.pdf';
+            let fileSize = fileInput.files[0] ? (fileInput.files[0].size / (1024*1024)).toFixed(1) + ' MB' : '1.8 MB';
+
+            lkjipStorage[currentLkjipTab].push({
+                id: newId,
+                title: titleInput.value,
+                size: fileSize,
+                date: 'Hari ini',
+                file: fileName
+            });
+
+            localStorage.setItem('kejati_aceh_lkjip', JSON.stringify(lkjipStorage));
+            titleInput.value = '';
+            fileInput.value = '';
+            renderLkjipContentContainer();
+            updateTotalDocsCount();
+            showNotification('Dokumen LKJIP berhasil diunggah dan disimpan permanen!');
+        }
+
+        function deleteLkjipDoc(tab, id) {
+            lkjipStorage[tab] = lkjipStorage[tab].filter(d => d.id !== id);
+            localStorage.setItem('kejati_aceh_lkjip', JSON.stringify(lkjipStorage));
+            renderLkjipContentContainer();
+            updateTotalDocsCount();
+            showNotification('Dokumen berhasil dihapus dari arsip.');
+        }
+
+        function updateTotalDocsCount() {
+            let totalLkjipCount = 0;
+            Object.keys(lkjipStorage).forEach(k => totalLkjipCount += lkjipStorage[k].length);
+            let totalSurat = suratDinasList.length;
+            let totalReg = regulasiList.length;
+            let grandTotal = totalLkjipCount + totalSurat + totalReg;
+
+            const statDocs = document.getElementById('statTotalDocs');
+            if (statDocs) statDocs.innerText = grandTotal + ' Dokumen';
+        }
+
+        function downloadIksReport() {
+            let reportContent = `========================================================================\n`;
+            reportContent += `          LAPORAN CAPAIAN INDIKATOR KINERJA SASARAN (IKS)\n`;
+            reportContent += `                     KEJAKSAAN TINGGI ACEH\n`;
+            reportContent += `                      TAHUN ANGGARAN 2026\n`;
+            reportContent += `========================================================================\n\n`;
+            reportContent += `Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 4.2 (ETIKA PROFESI JAKSA):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `1. Jaksa Tanpa Pelanggaran: ${iks42Data.tanpaPelanggaran}\n`;
+            reportContent += `2. Total Jaksa: ${iks42Data.totalJaksa}\n`;
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 4.1 (REFORMASI BIROKRASI):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `1. Survei Kepuasan Masyarakat (SKM): ${iks41Data.ind1}\n`;
+            reportContent += `2. IKPA Anggaran: ${iks41Data.ind2}\n`;
+            reportContent += `3. Evaluasi AKIP Internal: ${iks41Data.ind3}\n`;
+            reportContent += `4. Nilai LKE ZI oleh TPD: ${iks41Data.ind4}\n`;
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 3.1 (P1 & P2 BIDANG DATUN):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `P1-1 (Perdata Litigasi): ${iks31Data.p1_1}\n`;
+            reportContent += `P1-2 (Perdata Non-Litigasi): ${iks31Data.p1_2}\n`;
+            reportContent += `P1-3 (TUN Litigasi): ${iks31Data.p1_3}\n`;
+            reportContent += `P2-1 (Pendapat Hukum): ${iks31Data.p2_1}\n`;
+            reportContent += `P2-2 (Pendampingan & Audit): ${iks31Data.p2_2}\n`;
+            reportContent += `P2-3 (Tindakan Hukum Lain): ${iks31Data.p2_3}\n`;
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 2.1 (PENGENDALIAN PERKARA K1, K2, K3):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `1. Capaian K1: ${iks21Data.k1}\n`;
+            reportContent += `2. Capaian K2: ${iks21Data.k2}\n`;
+            reportContent += `3. Capaian K3: ${iks21Data.k3}\n`;
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 2.2 (LAPORAN KEGIATAN & SP LID/PAM/DAL):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `1. Laporan Kegiatan: ${iks22Data.kegiatan}\n`;
+            reportContent += `2. SP LID / PAM / DAL: ${iks22Data.splid}\n`;
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 2.3 (PEMULIHAN ASET NEGARA):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `1. Tingkat Keberhasilan Penelusuran Asset: ${iks23Data.komp1}\n`;
+            reportContent += `2. Tingkat Keberhasilan Perampasan Aset: ${iks23Data.komp2}\n`;
+            reportContent += `3. Tingkat Keberhasilan Pemulihan Aset: ${iks23Data.komp3}\n`;
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `RINCIAN IKS 1.1 (9 LAYANAN KINERJA):\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+            iks11Services.forEach((s, i) => {
+                reportContent += `${i+1}. ${s.name}: Realisasi ${s.real}\n`;
+            });
+            reportContent += `\n------------------------------------------------------------------------\n`;
+            reportContent += `DAFTAR CAPAIAN INDIKATOR KINERJA SASARAN (IKS) KESELURUHAN:\n`;
+            reportContent += `------------------------------------------------------------------------\n`;
+
+            let totalPct = 0;
+            let count = 0;
+            Object.keys(iksData).forEach(k => {
+                let d = iksData[k];
+                let pct = Math.round((d.real / d.target) * 100);
+                totalPct += pct;
+                count++;
+                reportContent += `[${d.name}] Capaian: ${pct}${d.unit} (Realisasi: ${d.real} | Target: ${d.target})\n`;
+            });
+
+            let avg = Math.round(totalPct / count);
+            reportContent += `------------------------------------------------------------------------\n`;
+            reportContent += `RATA-RATA KINERJA UTAMA: ${avg}%\n`;
+            reportContent += `TOTAL SATUAN KERJA BINAAN: 24 Satker (Kejari & Cabjari)\n`;
+            reportContent += `TOTAL DOKUMEN ARSIP TERINTEGRASI: ${document.getElementById('statTotalDocs').innerText}\n`;
+            reportContent += `========================================================================\n`;
+            reportContent += `           SUBBAGIAN PERENCANAAN - KEJAKSAAN TINGGI ACEH\n`;
+            reportContent += `========================================================================\n`;
+
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Laporan_Capaian_IKS_Kejati_Aceh_2026.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showNotification('Laporan capaian IKS berhasil diunduh sebagai file ringkasan resmi!');
+        }
+
+        function openDokumenHubModal() {
+            renderHubContent();
+            document.getElementById('dokumenHubModal').classList.remove('hidden');
+        }
+
+        function closeDokumenHubModal() {
+            document.getElementById('dokumenHubModal').classList.add('hidden');
+        }
+
+        function setHubTab(tab) {
+            currentHubTab = tab;
+            ['lkjip', 'surat', 'regulasi'].forEach(t => {
+                const btn = document.getElementById('hubTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-900 text-white transition border border-amber-500/40";
+                    } else {
+                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 transition";
+                    }
+                }
+            });
+            renderHubContent();
+        }
+
+        function renderHubContent() {
+            const container = document.getElementById('hubListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let items = [];
+            if (currentHubTab === 'lkjip') {
+                Object.keys(lkjipStorage).forEach(tw => {
+                    lkjipStorage[tw].forEach(doc => {
+                        items.push({ title: doc.title, desc: `Kategori: ${tw.toUpperCase()} • ${doc.size} • ${doc.date}`, file: doc.file });
+                    });
+                });
+            } else if (currentHubTab === 'surat') {
+                suratDinasList.forEach(s => {
+                    items.push({ title: s.nomor, desc: `Perihal: ${s.perihal} • ${s.tanggal}`, file: s.file });
+                });
+            } else if (currentHubTab === 'regulasi') {
+                regulasiList.forEach(r => {
+                    items.push({ title: r.title, desc: r.desc, file: r.file });
+                });
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic py-6 text-center">Belum ada dokumen dalam kategori ini.</p>`;
+            } else {
+                items.forEach(item => {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center space-x-3 overflow-hidden">
+                                <div class="p-2 bg-blue-950 text-amber-400 rounded-lg">
+                                    <i class="fa-solid fa-file-pdf text-sm"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${item.title}</h4>
+                                    <p class="text-[10px] text-slate-500 truncate">${item.desc}</p>
+                                </div>
+                            </div>
+                            <button onclick="showNotification('Mengunduh ${item.file}...')" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-blue-900 hover:text-white text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium transition shadow-sm shrink-0">
+                                <i class="fa-solid fa-download mr-1"></i> Unduh
+                            </button>
+                        </div>
+                    `;
+                });
+            }
+
+            let totalLkjipCount = 0;
+            Object.keys(lkjipStorage).forEach(k => totalLkjipCount += lkjipStorage[k].length);
+            let totalAll = totalLkjipCount + suratDinasList.length + regulasiList.length;
+            document.getElementById('hubTotalCountText').innerText = `Total Dokumen Terintegrasi: ${totalAll} Dokumen`;
+        }
+
+        function renderSuratDinasList() {
+            const container = document.getElementById('suratListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            suratDinasList.forEach(s => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-blue-900 text-amber-400 rounded-lg">
+                                <i class="fa-solid fa-envelope-open-text text-base"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900 dark:text-white">${s.nomor}</h4>
+                                <p class="text-[11px] text-slate-600 dark:text-slate-300 font-medium">${s.perihal}</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Tanggal: ${s.tanggal}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="showNotification('Mengunduh berkas ${s.file}...')" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-blue-900 hover:text-white text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium transition shadow-sm">
+                                <i class="fa-solid fa-download mr-1"></i> Unduh
+                            </button>
+                            <button onclick="deleteSuratDinasDoc(${s.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="Hapus Surat LKJIP">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            const badge = document.getElementById('suratCountBadge');
+            if (badge) badge.innerText = suratDinasList.length + ' Berkas';
+            updateTotalDocsCount();
+        }
+
+        function handleUploadSurat() {
+            const no = document.getElementById('suratNoInput').value;
+            const perihal = document.getElementById('suratPerihalInput').value;
+            const fileInput = document.getElementById('suratFileInput');
+
+            if (!no || !perihal) {
+                showNotification('Harap lengkapi nomor dan perihal surat LKJIP!');
+                return;
+            }
+
+            suratDinasList.unshift({
+                id: suratDinasList.length > 0 ? Math.max(...suratDinasList.map(s => s.id)) + 1 : 1,
+                nomor: no,
+                perihal: perihal,
+                tanggal: 'Hari ini',
+                file: fileInput.files[0] ? fileInput.files[0].name : 'Surat_LKJIP.pdf'
+            });
+
+            localStorage.setItem('kejati_aceh_surat', JSON.stringify(suratDinasList));
+            document.getElementById('suratNoInput').value = '';
+            document.getElementById('suratPerihalInput').value = '';
+            document.getElementById('suratFileInput').value = '';
+
+            renderSuratDinasList();
+            showNotification('Surat LKJIP baru berhasil diunggah dan disimpan permanen!');
+        }
+
+        function deleteSuratDinasDoc(id) {
+            suratDinasList = suratDinasList.filter(s => s.id !== id);
+            localStorage.setItem('kejati_aceh_surat', JSON.stringify(suratDinasList));
+            renderSuratDinasList();
+            showNotification('Surat LKJIP berhasil dihapus dari arsip.');
+        }
+
+        function renderRegulasiList() {
+            const container = document.getElementById('regListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            regulasiList.forEach(r => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-blue-900 text-amber-400 rounded-lg">
+                                <i class="fa-solid fa-scale-balanced text-base"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900 dark:text-white">${r.title}</h4>
+                                <p class="text-[11px] text-slate-600 dark:text-slate-300 font-medium">${r.desc}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="showNotification('Mengunduh regulasi ${r.file}...')" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-blue-900 hover:text-white text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium transition shadow-sm">
+                                <i class="fa-solid fa-download mr-1"></i> Unduh
+                            </button>
+                            <button onclick="deleteRegulasiDoc(${r.id})" class="p-1.5 text-slate-400 hover:text-rose-500 transition" title="Hapus Regulasi">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            const badge = document.getElementById('regCountBadge');
+            if (badge) badge.innerText = regulasiList.length + ' Berkas';
+            updateTotalDocsCount();
+        }
+
+        function handleUploadRegulasi() {
+            const title = document.getElementById('regTitleInput').value;
+            const desc = document.getElementById('regDescInput').value;
+            const fileInput = document.getElementById('regFileInput');
+
+            if (!title) {
+                showNotification('Harap masukkan judul regulasi dasar hukum!');
+                return;
+            }
+
+            regulasiList.unshift({
+                id: regulasiList.length > 0 ? Math.max(...regulasiList.map(r => r.id)) + 1 : 1,
+                title: title,
+                desc: desc || 'Dasar hukum perencanaan kinerja',
+                file: fileInput.files[0] ? fileInput.files[0].name : 'Regulasi.pdf'
+            });
+
+            localStorage.setItem('kejati_aceh_regulasi', JSON.stringify(regulasiList));
+            document.getElementById('regTitleInput').value = '';
+            document.getElementById('regDescInput').value = '';
+            document.getElementById('regFileInput').value = '';
+
+            renderRegulasiList();
+            showNotification('Dasar hukum baru berhasil diunggah dan disimpan permanen!');
+        }
+
+        function deleteRegulasiDoc(id) {
+            regulasiList = regulasiList.filter(r => r.id !== id);
+            localStorage.setItem('kejati_aceh_regulasi', JSON.stringify(regulasiList));
+            renderRegulasiList();
+            showNotification('Dokumen dasar hukum berhasil dihapus.');
+        }
+    </script>
+</body>
+</html>
